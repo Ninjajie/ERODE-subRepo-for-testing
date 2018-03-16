@@ -4,7 +4,7 @@
 #include "stdafx.h"
 
 #include "RiverBranches.h"
-
+#include "RiverNetwork.h"
 int RiverBranch::id = 0;
 
 RiverNode::RiverNode()
@@ -32,7 +32,13 @@ RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
 // main function
 int main()
 {
+	RiverNetwork RN = RiverNetwork(100, 100, 10);
+	RN.initialNode();
+	RiverNode* cNode = RN.selectNode(0.0);
+	RN.expandNode(cNode);
+
 	std::cout << "testout" << std::endl;
+	system("pause");
     return 0;
 }
 

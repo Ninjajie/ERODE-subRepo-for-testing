@@ -114,6 +114,7 @@ void RiverNetwork::initialNode()
 	nodes.push_back(mouth4);
 	nonTerminalNodes.push_back(mouth4);
 
+	std::cout << "Ok in initial node" << std::endl;
 }
 
 //from all the non-terminal nodes, select exactly one node that is subject to expansion
@@ -128,7 +129,7 @@ RiverNode * RiverNetwork::selectNode(double elevationRange)
 	{
 		return nullptr;
 	}
-
+	
 	vector<RiverNode*> candidateNodes;
 	//find the nodes within [z, z+elevationRange]
 	for (int i = 0; i < nonTerminalNodes.size(); i++)
@@ -174,7 +175,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 
 	double prob = (double)std::rand() / (double)RAND_MAX;
 	// symmetric
-	if (prob > 0.0 || prob <= 0.2) {
+	if (prob > 0.0 && prob <= 0.2) {
 		int num = 2;
 		while (num) {
 			int k = 0;
@@ -197,7 +198,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 				newNode = getCandidate(node, currentAngle, node->priority - 1);
 				//if a new node is avaliable at some position, add this node to the node list 
 				//also add this node to its parent's children list
-				if (validateNode(node, e * 0.25, branch))
+				if (validateNode(newNode, e * 0.25, branch))
 				{
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
@@ -235,7 +236,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 				newNode = getCandidate(node, currentAngle, p[num]);
 				//if a new node is avaliable at some position, add this node to the node list 
 				//also add this node to its parent's children list
-				if (validateNode(node, e * 0.25, branch))
+				if (validateNode(newNode, e * 0.25, branch))
 				{
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
@@ -271,7 +272,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 			newNode = getCandidate(node, currentAngle, node->priority);
 			//if a new node is avaliable at some position, add this node to the node list 
 			//also add this node to its parent's children list
-			if (validateNode(node, e * 0.25, branch))
+			if (validateNode(newNode, e * 0.25, branch))
 			{
 				node->children.push_back(newNode);
 				nodes.push_back(newNode);
