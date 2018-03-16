@@ -33,10 +33,24 @@ RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
 int main()
 {
 	RiverNetwork RN = RiverNetwork(100, 100, 10);
+	std::cout << RN.numH << " " << RN.numW << endl;
 	RN.initialNode();
-	RiverNode* cNode = RN.selectNode(0.0);
-	RN.expandNode(cNode);
-
+	//RiverNode* cNode = RN.selectNode(0.0);
+	//RN.expandNode(cNode);
+	for (int i = 0; i < 100; i++)
+	{
+		std::cout << i << std::endl;
+		RiverNode* cNode = RN.selectNode(0.0);
+		if (cNode == nullptr)
+		{
+			break;
+		}
+		RN.expandNode(cNode);
+	}
+	for (int i = 0; i < RN.nodes.size(); i++)
+	{
+		std::cout << RN.nodes[i]->position << std::endl;
+	}
 	std::cout << "testout" << std::endl;
 	system("pause");
     return 0;

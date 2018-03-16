@@ -101,16 +101,16 @@ void RiverNetwork::initialNode()
 		}
 	}
 	//create 4 mouths around the boundary
-	RiverNode* mouth1 = new RiverNode(1, vec3(l1, 0, 0), nullptr);
+	RiverNode* mouth1 = new RiverNode(p[0], vec3(l1, 0, 0), nullptr);
 	nodes.push_back(mouth1);
 	nonTerminalNodes.push_back(mouth1);
-	RiverNode* mouth2 = new RiverNode(1, vec3((double)width, l2, 0), nullptr);
+	RiverNode* mouth2 = new RiverNode(p[1], vec3((double)width, l2, 0), nullptr);
 	nodes.push_back(mouth2);
 	nonTerminalNodes.push_back(mouth2);
-	RiverNode* mouth3 = new RiverNode(1, vec3(l3, (double)height, 0), nullptr);
+	RiverNode* mouth3 = new RiverNode(p[2], vec3(l3, (double)height, 0), nullptr);
 	nodes.push_back(mouth3);
 	nonTerminalNodes.push_back(mouth3);
-	RiverNode* mouth4 = new RiverNode(1, vec3(0, l4, 0), nullptr);
+	RiverNode* mouth4 = new RiverNode(p[3], vec3(0, l4, 0), nullptr);
 	nodes.push_back(mouth4);
 	nonTerminalNodes.push_back(mouth4);
 
@@ -175,7 +175,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 
 	double prob = (double)std::rand() / (double)RAND_MAX;
 	// symmetric
-	if (prob > 0.0 && prob <= 0.2) {
+	if (prob >= 0.0 && prob < 0.0) {
 		int num = 2;
 		while (num) {
 			int k = 0;
@@ -211,7 +211,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 		}
 	}
 	// asymmetric
-	else if (prob > 0.2 && prob <= 0.9) {
+	else if (prob > 0.0 && prob <= 1.9) {
 		int num = 2;
 		int p[2] = { node->priority, std::floor(node->priority * ((double)std::rand() / (double)RAND_MAX)) };
 		while (num) {
@@ -311,8 +311,9 @@ RiverNode* RiverNetwork::getCandidate(RiverNode* node, double angle, int p) {
 bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* branch)
 {
 
+
 	// check elevation correctness
-	if (node->position[2] <= node->parent->position[2]) {
+	if (node->position[2] < node->parent->position[2]) {
 		return false;
 	}
 
@@ -338,7 +339,19 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 		}
 		}
 		}*/
-		if (grids[id.first * numH + id.second].size() != 0) {
+//		std::cout << id.first << " " << id.second << endl;
+		int idx = id.first * numW + id.second;
+		if (id.first >= 0 && id.first < numH &&
+			id.second >= 0 && id.second < numW) 
+		{
+			if (grids[idx].size() != 0)
+			{
+				branch = nullptr;
+				return false;
+			}
+
+		}
+		else {
 			branch = nullptr;
 			return false;
 		}
