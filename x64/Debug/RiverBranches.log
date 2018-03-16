@@ -5,10 +5,6 @@ c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(11): warning C4244: '
 c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(12): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
 c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(58): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
 c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(59): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(158): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(216): warning C4838: conversion from 'double' to 'int' requires a narrowing conversion
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(216): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-  RiverBranches.cpp
-  Generating Code...
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(167): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\MayaPluginHw2\x64\Debug\RiverBranches.exe
   RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\MayaPluginHw2\x64\Debug\RiverBranches.pdb (Full PDB)

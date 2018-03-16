@@ -37,7 +37,7 @@ int main()
 	RN.initialNode();
 	//RiverNode* cNode = RN.selectNode(0.0);
 	//RN.expandNode(cNode);
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 1000; i++)
 	{
 		std::cout << i << std::endl;
 		RiverNode* cNode = RN.selectNode(0.0);
@@ -49,6 +49,7 @@ int main()
 	}
 	for (int i = 0; i < RN.nodes.size(); i++)
 	{
+		std::cout << RN.nodes[i]->priority << std::endl;
 		std::cout << RN.nodes[i]->position << std::endl;
 	}
 	std::cout << "testout" << std::endl;

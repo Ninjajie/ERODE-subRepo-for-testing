@@ -103,16 +103,25 @@ void RiverNetwork::initialNode()
 	//create 4 mouths around the boundary
 	RiverNode* mouth1 = new RiverNode(p[0], vec3(l1, 0, 0), nullptr);
 	nodes.push_back(mouth1);
-	nonTerminalNodes.push_back(mouth1);
 	RiverNode* mouth2 = new RiverNode(p[1], vec3((double)width, l2, 0), nullptr);
 	nodes.push_back(mouth2);
-	nonTerminalNodes.push_back(mouth2);
 	RiverNode* mouth3 = new RiverNode(p[2], vec3(l3, (double)height, 0), nullptr);
 	nodes.push_back(mouth3);
-	nonTerminalNodes.push_back(mouth3);
 	RiverNode* mouth4 = new RiverNode(p[3], vec3(0, l4, 0), nullptr);
 	nodes.push_back(mouth4);
-	nonTerminalNodes.push_back(mouth4);
+	//we first apply a continuation for the initial mouths
+	RiverNode* mouth11 = new RiverNode(p[0], vec3(l1, e, 0), mouth1);
+	nodes.push_back(mouth11);
+	nonTerminalNodes.push_back(mouth11);
+	RiverNode* mouth22 = new RiverNode(p[1], vec3((double)width - e, l2, 0), mouth2);
+	nodes.push_back(mouth22);
+	nonTerminalNodes.push_back(mouth22);
+	RiverNode* mouth33 = new RiverNode(p[2], vec3(l3, (double)height - e, 0), mouth3);
+	nodes.push_back(mouth33);
+	nonTerminalNodes.push_back(mouth33);
+	RiverNode* mouth44 = new RiverNode(p[3], vec3(e, l4, 0), mouth4);
+	nodes.push_back(mouth44);
+	nonTerminalNodes.push_back(mouth44);
 
 	std::cout << "Ok in initial node" << std::endl;
 }
@@ -195,11 +204,14 @@ void RiverNetwork::expandNode(RiverNode * node)
 			for (int k = 0; currentAngle >= 0 - angleStep && currentAngle <= 180 + angleStep; k++)
 			{
 				currentAngle = currentAngle + pow(-1, k) * (k / 2) * angleStep;
-				newNode = getCandidate(node, currentAngle, node->priority - 1);
+				int newP = node->priority - 1;
+				if (newP < 1)newP = 1;
+				newNode = getCandidate(node, currentAngle, newP);
 				//if a new node is avaliable at some position, add this node to the node list 
 				//also add this node to its parent's children list
 				if (validateNode(newNode, e * 0.25, branch))
 				{
+					std::cout << "newnode P in s" << newNode->priority << endl;
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
 					//add this newNode to nonterminal 
@@ -213,7 +225,15 @@ void RiverNetwork::expandNode(RiverNode * node)
 	// asymmetric
 	else if (prob > 0.0 && prob <= 1.9) {
 		int num = 2;
-		int p[2] = { node->priority, std::floor(node->priority * ((double)std::rand() / (double)RAND_MAX)) };
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.6,1.0);
+		double ratio = dis(gen);
+		int newP = (int)(ratio * node->priority);
+		if (newP < 1)newP = 1;
+		//set a random priority for the second node
+		int p[2] = { node->priority, newP};
+		std::cout << "newP" << newP << endl;
 		while (num) {
 			//int k = 0;
 			double initialAngle = 45.0 + 90.0 * (num % 2), currentAngle = initialAngle;
@@ -233,11 +253,12 @@ void RiverNetwork::expandNode(RiverNode * node)
 			for (int k = 0; currentAngle >= 0 - angleStep && currentAngle <= 180 + angleStep; k++)
 			{
 				currentAngle = currentAngle + pow(-1, k) * (k / 2) * angleStep;
-				newNode = getCandidate(node, currentAngle, p[num]);
+				newNode = getCandidate(node, currentAngle, p[num-1]);
 				//if a new node is avaliable at some position, add this node to the node list 
 				//also add this node to its parent's children list
 				if (validateNode(newNode, e * 0.25, branch))
 				{
+					std::cout << "newnode P in as" << newNode->priority << endl;
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
 					//add this to nonterminal 
@@ -274,6 +295,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 			//also add this node to its parent's children list
 			if (validateNode(newNode, e * 0.25, branch))
 			{
+				std::cout << "newnode P in c" << newNode->priority << endl;
 				node->children.push_back(newNode);
 				nodes.push_back(newNode);
 				//add this to nonterminal 
@@ -296,9 +318,14 @@ void RiverNetwork::expandNode(RiverNode * node)
 }
 
 RiverNode* RiverNetwork::getCandidate(RiverNode* node, double angle, int p) {
-	vec3 pos = node->position;
-	double dx = e * std::cos(Deg2Rad * angle), dy = e * std::sin(Deg2Rad * angle);
-	return new RiverNode(p, vec3(pos[0] + dx, pos[1] + dy, pos[2] /*+ elevation*/), node);
+	vec2 ppos = vec2(node->parent->position[0], node->parent->position[1]);
+	vec2 pos = vec2(node->position[0], node->position[1]);
+	vec2 dir = pos - ppos;
+	dir = dir.Normalize();
+	vec2 perpen = vec2(dir[1], -dir[0]);
+	vec2 FinalDir = dir * std::sin(Deg2Rad * angle) + perpen * std::cos(Deg2Rad * angle);
+	//double dx = e * std::cos(Deg2Rad * angle), dy = e * std::sin(Deg2Rad * angle);
+	return new RiverNode(p, vec3(pos[0] + e * FinalDir[0], pos[1] + e * FinalDir[1], node->position[2] /*+ elevation*/), node);
 }
 
 
