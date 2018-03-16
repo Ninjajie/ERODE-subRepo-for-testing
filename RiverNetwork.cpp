@@ -200,6 +200,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 				//also add this node to its parent's children list
 				if (validateNode(newNode, e * 0.25, branch))
 				{
+					newNode->id = node->id;
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
 					//add this newNode to nonterminal 
@@ -238,6 +239,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 				//also add this node to its parent's children list
 				if (validateNode(newNode, e * 0.25, branch))
 				{
+					newNode->id = node->id;
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
 					//add this to nonterminal 
@@ -274,6 +276,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 			//also add this node to its parent's children list
 			if (validateNode(newNode, e * 0.25, branch))
 			{
+				newNode->id = node->id;
 				node->children.push_back(newNode);
 				nodes.push_back(newNode);
 				//add this to nonterminal 

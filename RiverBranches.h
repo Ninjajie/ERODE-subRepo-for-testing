@@ -18,6 +18,10 @@ public:
 	//Terminal nodes or not
 	bool terminal;
 
+
+	static int index;
+	int id;
+
 	RiverNode();
 	RiverNode(int p, vec3 pos, RiverNode* parent);
 	~RiverNode();
@@ -42,7 +46,8 @@ public:
 	RiverNode* start;
 	RiverNode* end;
 
-	static int id;
+	static int index;
+	int id;
 
 	RiverBranch(RiverNode* s, RiverNode* e);
 	double distance(RiverBranch* branch);
