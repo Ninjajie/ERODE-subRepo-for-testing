@@ -65,7 +65,9 @@ RiverNetwork::RiverNetwork(int w, int h, double e)
 	//	}
 	//	elevationMap.push_back(onerow);
 	//}
-	elevationRange = 10.0;
+
+	//initialize elevationRange
+	elevationRange = 15.0;
 }
 
 RiverNetwork::~RiverNetwork()
