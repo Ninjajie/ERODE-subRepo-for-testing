@@ -23,6 +23,11 @@ RiverNode::~RiverNode()
 	//todo?
 }
 
+void RiverNode::setElevation(double z)
+{
+	position[2] = z;
+}
+
 RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
 	:start(s), end(e)
 {
@@ -33,14 +38,19 @@ RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
 int main()
 {
 	RiverNetwork RN = RiverNetwork(100, 100, 10);
-	std::cout << RN.numH << " " << RN.numW << endl;
 	RN.initialNode();
-	//RiverNode* cNode = RN.selectNode(0.0);
-	//RN.expandNode(cNode);
+	//for (int i = 0; i < RN.elevationMap.size(); i++)
+	//{
+	//	for (int j = 0; j < RN.elevationMap[i].size(); j++)
+	//	{
+	//		std::cout << RN.elevationMap[i][j] << " ";
+	//		if (j == RN.elevationMap[i].size() - 1)std::cout << std::endl;
+	//	}
+	//}
 	for (int i = 0; i < 1000; i++)
 	{
 		std::cout << i << std::endl;
-		RiverNode* cNode = RN.selectNode(0.0);
+		RiverNode* cNode = RN.selectNode();
 		if (cNode == nullptr)
 		{
 			break;
