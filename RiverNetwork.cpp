@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "RiverNetwork.h"
 #include <random>
+#include <algorithm>
 #include <cmath>
 #include <utility>
 
@@ -32,43 +33,49 @@ vector<pair<int, int>> branchIndices(RiverBranch* branch, double step) {
 
 	vector<pair<int, int>> res;
 
-	// Bresenham's line algorithm
 	double deltax = endP[0] - startP[0];
 	double deltay = endP[1] - startP[1];
-	if (std::abs(deltax) < EPSILON) {
-		std::swap(deltax, deltay);
+
+	if (abs(deltax) < EPSILON) {
+		swap(start, end);
+		swap(deltax, deltay);
+		swap(startP[0], startP[1]);
 	}
-	double derror = std::abs(deltay / deltax);
-	double error = 0.0;
 
-
-	int y = start.second;
 	for (int x = start.first; x <= end.first; ++x) {
-		res.push_back(pair<int, int>(x, y));
-		y = y + round(derror * (x - start.first));
+		double s0 = max(startP[0], x * 7.5);
+		double s1 = min(endP[0], (x + 1) * 7.5);
+
+
+		cout << "s0 = " << s0 << ", s1 = " << s1 << endl;
+
+		double y1 = (s0 - startP[0]) * deltay / deltax + startP[1];
+		double y2 = (s1 - startP[0]) * deltay / deltax + startP[1];
+
+		int ys = std::floor(y1 / step);
+		int ye = std::floor(y2 / step);
+
+		if (ys > ye) {
+			swap(ys, ye);
+		}
+
+		for (int y = ys; y <= ye; ++y) {
+			res.push_back(pair<int, int>(x, y));
+			cout << "x = " << x << ", y = " << y << endl;
+		}
+
 	}
 
 	return res;
 }
 
 
-double gaussianGrid(int i, int j, int H, int W)
-{
-	return 100.0 * exp(-pow((double)i - H / 2.0, 2.0) / 20 - pow((double)j - W / 2.0, 2.0) / 20);
-}
 RiverNetwork::RiverNetwork(int w, int h, double e)
 	:width(w), height(h), e(e),minElevation(0.0)
 {
 	numW = std::ceil((double)width / (0.75 * e));
 	numH = std::ceil((double)height / (0.75 * e));
 	grids.resize(numH * numW, vector<RiverBranch*>());
-	for (int i = 0; i < numW; i++) {
-		vector<double>onerow;
-		for (int j = 0; j < numH; j++) {
-			onerow.push_back(gaussianGrid(i, j, numH, numW));
-		}
-		elevationMap.push_back(onerow);
-	}
 	elevationRange = 15.0;
 }
 
@@ -123,9 +130,11 @@ void RiverNetwork::initialNode()
 	nodes.push_back(mouth4);
 	//we first apply a continuation for the initial mouths
 	RiverNode* mouth11 = new RiverNode(p[0], vec3(l1, e, 0), mouth1);
-
-	mouth11->setElevation(elevationMap[(int)(l1/ (0.75 * e))][(int)(e/ (0.75 * e))]);
 	mouth11->id = mouth1->id;
+
+	//mouth11->setElevation(elevationMap[(int)(l1/ (0.75 * e))][(int)(e/ (0.75 * e))]);
+	mouth11->position[2] = mouth11->getElevation(height, width);
+	std::cout << "Elevation" << mouth11->position[2] << std::endl;
 	nodes.push_back(mouth11);
 	nonTerminalNodes.push_back(mouth11);
 	RiverBranch* branch1 = new RiverBranch(mouth1, mouth11);
@@ -135,8 +144,9 @@ void RiverNetwork::initialNode()
 		grids[id.first * numW + id.second].push_back(branch1);
 	}
 	RiverNode* mouth22 = new RiverNode(p[1], vec3((double)width - e, l2, 0), mouth2);
-	mouth22->setElevation(elevationMap[(int)(((double)width - e) / (0.75 * e))][(int)(l2 / (0.75 * e))]);
 	mouth22->id = mouth2->id;
+	//mouth22->setElevation(elevationMap[(int)(((double)width - e) / (0.75 * e))][(int)(l2 / (0.75 * e))]);
+	mouth22->position[2] = mouth22->getElevation(height, width);
 	nodes.push_back(mouth22);
 	nonTerminalNodes.push_back(mouth22);
 	RiverBranch* branch2 = new RiverBranch(mouth2, mouth22);
@@ -146,8 +156,9 @@ void RiverNetwork::initialNode()
 		grids[id.first * numW + id.second].push_back(branch2);
 	}
 	RiverNode* mouth33 = new RiverNode(p[2], vec3(l3, (double)height - e, 0), mouth3);
-	mouth33->setElevation(elevationMap[(int)(l3 / (0.75 * e))][(int)(((double)height - e) / (0.75 * e))]);
 	mouth33->id = mouth3->id;
+	//mouth33->setElevation(elevationMap[(int)(l3 / (0.75 * e))][(int)(((double)height - e) / (0.75 * e))]);
+	mouth33->position[2] = mouth33->getElevation(height, width);
 	nodes.push_back(mouth33);
 	nonTerminalNodes.push_back(mouth33);
 	RiverBranch* branch3 = new RiverBranch(mouth3, mouth33);
@@ -157,8 +168,9 @@ void RiverNetwork::initialNode()
 		grids[id.first * numW + id.second].push_back(branch3);
 	}
 	RiverNode* mouth44 = new RiverNode(p[3], vec3(e, l4, 0), mouth4);
-	mouth44->setElevation(elevationMap[(int)(e / (0.75 * e))][(int)(l4 / (0.75 * e))]);
 	mouth44->id = mouth4->id;
+	//mouth44->setElevation(elevationMap[(int)(e / (0.75 * e))][(int)(l4 / (0.75 * e))]);
+	mouth44->position[2] = mouth44->getElevation(height, width);
 	nodes.push_back(mouth44);
 	nonTerminalNodes.push_back(mouth44);
 	RiverBranch* branch4 = new RiverBranch(mouth4, mouth44);
@@ -178,7 +190,6 @@ void RiverNetwork::initialNode()
 
 void RiverNetwork::refreshMinele()
 {
-	std::cout << nonTerminalNodes.size() << std::endl;
 	double tempEle = 10000;
 	for (int i = 0; i < nonTerminalNodes.size(); ++i)
 	{
@@ -186,6 +197,7 @@ void RiverNetwork::refreshMinele()
 			tempEle = nonTerminalNodes[i]->position[2];
 	}
 	minElevation = tempEle;
+	std::cout << "minEle" << minElevation << std::endl;
 }
 //from all the non-terminal nodes, select exactly one node that is subject to expansion
 //based on the elevationRange and priorities
@@ -410,7 +422,9 @@ RiverNode* RiverNetwork::getCandidate(RiverNode* node, double angle, int p) {
 	vec2 perpen = vec2(dir[1], -dir[0]);
 	vec2 FinalDir = dir * std::sin(Deg2Rad * angle) + perpen * std::cos(Deg2Rad * angle);
 	//double dx = e * std::cos(Deg2Rad * angle), dy = e * std::sin(Deg2Rad * angle);
-	return new RiverNode(p, vec3(pos[0] + e * FinalDir[0], pos[1] + e * FinalDir[1], node->position[2] /*+ elevation*/), node);
+	RiverNode* resultNode =  new RiverNode(p, vec3(pos[0] + e * FinalDir[0], pos[1] + e * FinalDir[1], node->position[2] /*+ elevation*/), node);
+	resultNode->setElevation(resultNode->getElevation(height, width));
+	return resultNode;
 }
 
 

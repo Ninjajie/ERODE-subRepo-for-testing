@@ -108,6 +108,11 @@ double RiverBranch::distance(RiverBranch* branch) {
 
 }
 
+double RiverNode::getElevation(double H, double W)
+{
+	return 100.0 * exp(-pow(position[0] - H / 2.0, 2.0) / 2000 - pow(position[1] - W / 2.0, 2.0) / 2000);
+}
+
 // main function
 int main()
 {
