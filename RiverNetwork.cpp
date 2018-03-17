@@ -103,16 +103,29 @@ void RiverNetwork::initialNode()
 	//create 4 mouths around the boundary
 	RiverNode* mouth1 = new RiverNode(p[0], vec3(l1, 0, 0), nullptr);
 	nodes.push_back(mouth1);
-	nonTerminalNodes.push_back(mouth1);
 	RiverNode* mouth2 = new RiverNode(p[1], vec3((double)width, l2, 0), nullptr);
 	nodes.push_back(mouth2);
-	nonTerminalNodes.push_back(mouth2);
 	RiverNode* mouth3 = new RiverNode(p[2], vec3(l3, (double)height, 0), nullptr);
 	nodes.push_back(mouth3);
-	nonTerminalNodes.push_back(mouth3);
 	RiverNode* mouth4 = new RiverNode(p[3], vec3(0, l4, 0), nullptr);
 	nodes.push_back(mouth4);
-	nonTerminalNodes.push_back(mouth4);
+	//we first apply a continuation for the initial mouths
+	RiverNode* mouth11 = new RiverNode(p[0], vec3(l1, e, 0), mouth1);
+	mouth11->id = mouth1->id;
+	nodes.push_back(mouth11);
+	nonTerminalNodes.push_back(mouth11);
+	RiverNode* mouth22 = new RiverNode(p[1], vec3((double)width - e, l2, 0), mouth2);
+	mouth22->id = mouth2->id;
+	nodes.push_back(mouth22);
+	nonTerminalNodes.push_back(mouth22);
+	RiverNode* mouth33 = new RiverNode(p[2], vec3(l3, (double)height - e, 0), mouth3);
+	mouth33->id = mouth3->id;
+	nodes.push_back(mouth33);
+	nonTerminalNodes.push_back(mouth33);
+	RiverNode* mouth44 = new RiverNode(p[3], vec3(e, l4, 0), mouth4);
+	mouth44->id = mouth4->id;
+	nodes.push_back(mouth44);
+	nonTerminalNodes.push_back(mouth44);
 
 	std::cout << "Ok in initial node" << std::endl;
 }
@@ -175,11 +188,11 @@ void RiverNetwork::expandNode(RiverNode * node)
 
 	double prob = (double)std::rand() / (double)RAND_MAX;
 	// symmetric
-	if (prob >= 0.0 && prob < 0.0) {
+	if (prob >= 0.0 && prob < 0.6) {
 		int num = 2;
 		while (num) {
 			int k = 0;
-			double initialAngle = 45.0 + 90.0 * (num % 2), currentAngle = initialAngle;
+			double initialAngle = 45.0 + 45.0 * (num % 2), currentAngle = initialAngle;
 			double angleStep = 2.5;
 			RiverNode* newNode = nullptr;
 			RiverBranch* branch = nullptr;
@@ -194,8 +207,10 @@ void RiverNetwork::expandNode(RiverNode * node)
 			//currentAngle >= -2.5 && <= 182.5 means that it can surpass the bottom line of 0/180 degree for once.
 			for (int k = 0; currentAngle >= 0 - angleStep && currentAngle <= 180 + angleStep; k++)
 			{
-				currentAngle = currentAngle + pow(-1, k) * (k / 2) * angleStep;
-				newNode = getCandidate(node, currentAngle, node->priority - 1);
+				currentAngle = currentAngle + pow(-1.0, k) * (k / 2) * angleStep;
+				int newP = node->priority - 1;
+				if (newP < 1) newP = 1;
+				newNode = getCandidate(node, currentAngle, newP);
 				//if a new node is avaliable at some position, add this node to the node list 
 				//also add this node to its parent's children list
 				if (validateNode(newNode, e * 0.25, branch))
@@ -204,7 +219,10 @@ void RiverNetwork::expandNode(RiverNode * node)
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
 					//add this newNode to nonterminal 
-					nonTerminalNodes.push_back(newNode);
+					if (newNode->priority > 1)
+					{
+						nonTerminalNodes.push_back(newNode);
+					}
 					break;
 				}
 			}
@@ -212,12 +230,19 @@ void RiverNetwork::expandNode(RiverNode * node)
 		}
 	}
 	// asymmetric
-	else if (prob > 0.0 && prob <= 1.9) {
+	else if (prob > 0.6 && prob <= 0.9) {
 		int num = 2;
-		int p[2] = { node->priority, std::floor(node->priority * ((double)std::rand() / (double)RAND_MAX)) };
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.6,0.99);
+		double ratio = dis(gen);
+		int newP = (int)(ratio * node->priority);
+		if (newP < 1)newP = 1;
+		//set a random priority for the second node
+		int p[2] = { node->priority, newP};
 		while (num) {
 			//int k = 0;
-			double initialAngle = 45.0 + 90.0 * (num % 2), currentAngle = initialAngle;
+			double initialAngle = 45.0 + 45.0 * (num % 2), currentAngle = initialAngle;
 			double angleStep = 2.5;
 			RiverNode* newNode = nullptr;
 			RiverBranch* branch = nullptr;
@@ -233,8 +258,8 @@ void RiverNetwork::expandNode(RiverNode * node)
 			//currentAngle >= -2.5 && <= 182.5 means that it can surpass the bottom line of 0/180 degree for once.
 			for (int k = 0; currentAngle >= 0 - angleStep && currentAngle <= 180 + angleStep; k++)
 			{
-				currentAngle = currentAngle + pow(-1, k) * (k / 2) * angleStep;
-				newNode = getCandidate(node, currentAngle, p[num]);
+				currentAngle = currentAngle + pow(-1.0, k) * (k / 2) * angleStep;
+				newNode = getCandidate(node, currentAngle, p[num-1]);
 				//if a new node is avaliable at some position, add this node to the node list 
 				//also add this node to its parent's children list
 				if (validateNode(newNode, e * 0.25, branch))
@@ -243,7 +268,10 @@ void RiverNetwork::expandNode(RiverNode * node)
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
 					//add this to nonterminal 
-					nonTerminalNodes.push_back(newNode);
+					if (newNode->priority > 1)
+					{
+						nonTerminalNodes.push_back(newNode);
+					}
 					break;
 				}
 			}
@@ -299,9 +327,14 @@ void RiverNetwork::expandNode(RiverNode * node)
 }
 
 RiverNode* RiverNetwork::getCandidate(RiverNode* node, double angle, int p) {
-	vec3 pos = node->position;
-	double dx = e * std::cos(Deg2Rad * angle), dy = e * std::sin(Deg2Rad * angle);
-	return new RiverNode(p, vec3(pos[0] + dx, pos[1] + dy, pos[2] /*+ elevation*/), node);
+	vec2 ppos = vec2(node->parent->position[0], node->parent->position[1]);
+	vec2 pos = vec2(node->position[0], node->position[1]);
+	vec2 dir = pos - ppos;
+	dir = dir.Normalize();
+	vec2 perpen = vec2(dir[1], -dir[0]);
+	vec2 FinalDir = dir * std::sin(Deg2Rad * angle) + perpen * std::cos(Deg2Rad * angle);
+	//double dx = e * std::cos(Deg2Rad * angle), dy = e * std::sin(Deg2Rad * angle);
+	return new RiverNode(p, vec3(pos[0] + e * FinalDir[0], pos[1] + e * FinalDir[1], node->position[2] /*+ elevation*/), node);
 }
 
 
@@ -321,9 +354,9 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 	}
 
 	// check if within boundary
-	if (node->position[0] < boundary &&
-		node->position[0] > (double)width - boundary &&
-		node->position[1] < boundary &&
+	if (node->position[0] < boundary ||
+		node->position[0] > (double)width - boundary ||
+		node->position[1] < boundary ||
 		node->position[1] > (double)height - boundary) {
 		return false;
 	}
@@ -332,17 +365,7 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 	branch = new RiverBranch(node->parent, node);
 	vector<pair<int, int>> indices = branchIndices(branch, e * 0.75);
 	for (auto id : indices) {
-		/*for (int i = -1; i < 2; ++i) {
-		for (int j = -1; j < 2; ++j) {
-		if (id.first + i < 0 || id.first + i >= numW ||
-		id.second + j < 0 || id.second + j >= numH) continue;
-		if (grids[(id.first + i) * numH + id.second + j].size() != 0) {
-		branch = nullptr;
-		return false;
-		}
-		}
-		}*/
-//		std::cout << id.first << " " << id.second << endl;
+
 		int idx = id.first * numW + id.second;
 		if (id.first >= 0 && id.first < numH &&
 			id.second >= 0 && id.second < numW) 
@@ -362,7 +385,7 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 
 	branches.push_back(branch);
 	for (auto id : indices) {
-		grids[id.first * numH + id.second].push_back(branch);
+		grids[id.first * numW + id.second].push_back(branch);
 	}
 
 	return true;
