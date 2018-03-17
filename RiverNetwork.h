@@ -39,7 +39,7 @@ public:
 	int maxP;
 	//current minimum elevation
 	double minElevation;
-
+	double elevationRange;
 	//RiverNetwork();
 	RiverNetwork(int w = 0, int h = 0, double e = 0.0);
 	~RiverNetwork();
@@ -48,12 +48,13 @@ public:
 	//create the nodes to start from
 	void initialNode();
 	//select candidate nodes for expansion
-	RiverNode* selectNode(double elevationRange);
+	RiverNode* selectNode();
 	//node expansion operation
 	void expandNode(RiverNode* node);
 	//get next candidate node
 	RiverNode* getCandidate(RiverNode* parent, double angle, int p);
 	//validation of the new node
 	bool validateNode(RiverNode* node, double boundary, RiverBranch* branch);
-
+    //this function is account for computing the minimum elevation of current non-terminal nodes
+	void refreshMinele();
 };

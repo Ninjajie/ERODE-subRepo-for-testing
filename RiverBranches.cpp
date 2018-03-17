@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <fstream>
 
+extern vector<pair<int, int>> branchIndices(RiverBranch* branch, double step);
+
 int RiverBranch::index = 0;
 int RiverNode::index = 0;
 
@@ -29,6 +31,11 @@ RiverNode::RiverNode(int p, vec3 pos, RiverNode* parent)
 RiverNode::~RiverNode()
 {
 	//todo?
+}
+
+void RiverNode::setElevation(double z)
+{
+	position[2] = z;
 }
 
 RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
@@ -117,13 +124,11 @@ int main()
 	//RN.expandNode(cNode);
 	for (int i = 0; i < 1000; i++)
 	{
-		RiverNode* cNode = RN.selectNode(0.0);
-		
+		RiverNode* cNode = RN.selectNode();
 		if (cNode == nullptr)
 		{
 			break;
 		}
-		cout << cNode->priority << endl;
 		RN.expandNode(cNode);
 	}
 	cout << RN.nodes.size() << endl;
@@ -138,19 +143,24 @@ int main()
 		outPri << RN.nodes[i]->priority << endl;
 	}
 	for (int i = 0; i < RN.branches.size(); i++) {
-		cout << RN.branches[i]->id << endl;
 		outBranchX << RN.branches[i]->start->position[0] << " " << RN.branches[i]->end->position[0] << endl;
 		outBranchY << RN.branches[i]->start->position[1] << " " << RN.branches[i]->end->position[1] << endl;
 	}
 
 	//test branch distance
-	RiverBranch* cur = RN.branches[10];
-	RiverBranch* cmp = RN.branches[2];
-	
-	cout << "test branch distance function" << endl;
+	RiverBranch* cur = RN.branches[min((unsigned int)10, RN.branches.size() - 1)];
 	cout << "cur branch = " << cur->start->position << " / " << cur->end->position << endl;
-	cout << "cmp branch = " << cmp->start->position << " / " << cmp->end->position << endl;
-	cout << cur->distance(cmp) << endl;
+	vector<pair<int, int>> idx = branchIndices(cur, 7.5);
+	for (auto id : idx) {
+		cout << id.first << " " << id.second << endl;
+	}
+
+	//RiverBranch* cmp = RN.branches[2];
+	//
+	//cout << "test branch distance function" << endl;
+	//cout << "cur branch = " << cur->start->position << " / " << cur->end->position << endl;
+	//cout << "cmp branch = " << cmp->start->position << " / " << cmp->end->position << endl;
+	//cout << cur->distance(cmp) << endl;
 
 
 	std::cout << "testout" << std::endl;

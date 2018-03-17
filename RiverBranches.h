@@ -26,6 +26,7 @@ public:
 	RiverNode(int p, vec3 pos, RiverNode* parent);
 	~RiverNode();
 
+	void setElevation(double);
 	// setters and getters
 	//void updatePriority(int p);
 	//int getPriority();
