@@ -104,10 +104,10 @@ void RiverNetwork::initialNode()
 	{
 		double neta = dis(gen);
 		if (neta >= 0.7) {
-			p[i] = 5;
+			p[i] = 10;
 		}
 		else {
-			p[i] = 4;
+			p[i] = 11;
 		}
 	}
 	//create 4 mouths around the boundary
@@ -253,7 +253,11 @@ void RiverNetwork::expandNode(RiverNode * node)
 						node->children.push_back(newNode);
 						nodes.push_back(newNode);
 						//add this newNode to nonterminal 
-						nonTerminalNodes.push_back(newNode);
+						if (newNode->priority > 1)
+						{
+							nonTerminalNodes.push_back(newNode);
+						}
+						
 						break;
 					}
 				}
@@ -289,7 +293,10 @@ void RiverNetwork::expandNode(RiverNode * node)
 						node->children.push_back(newNode);
 						nodes.push_back(newNode);
 						//add this to nonterminal 
-						nonTerminalNodes.push_back(newNode);
+						if (newNode->priority > 1)
+						{
+							nonTerminalNodes.push_back(newNode);
+						}
 						break;
 					}
 				}
@@ -317,7 +324,10 @@ void RiverNetwork::expandNode(RiverNode * node)
 					node->children.push_back(newNode);
 					nodes.push_back(newNode);
 					//add this to nonterminal 
-					nonTerminalNodes.push_back(newNode);
+					if (newNode->priority > 1)
+					{
+						nonTerminalNodes.push_back(newNode);
+					}
 					break;
 				}
 			}
@@ -343,7 +353,10 @@ void RiverNetwork::expandNode(RiverNode * node)
 				node->children.push_back(newNode);
 				nodes.push_back(newNode);
 				//add this to nonterminal 
-				nonTerminalNodes.push_back(newNode);
+				//if (newNode->priority > 1)
+				//{
+				//	nonTerminalNodes.push_back(newNode);
+				//}
 				break;
 			}
 		}
