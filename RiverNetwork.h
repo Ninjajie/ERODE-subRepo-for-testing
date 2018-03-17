@@ -33,7 +33,7 @@ public:
 	vector<vector<RiverBranch*>> grids;
 	//this vector stores all the non-terminal nodes that currently can be expanded
 	vector<RiverNode*> nonTerminalNodes;
-	vector<vector<double>> elevationMap;
+	//vector<vector<double>> elevationMap;
 
 	//current maximum priority
 	int maxP;

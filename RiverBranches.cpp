@@ -34,6 +34,11 @@ RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
 	id++;
 }
 
+double RiverNode::getElevation(double H, double W)
+{
+	return 1000.0 * exp(-pow(position[0] - H / 2.0, 2.0) / 2000 - pow(position[1] - W / 2.0, 2.0) / 2000);
+}
+
 // main function
 int main()
 {

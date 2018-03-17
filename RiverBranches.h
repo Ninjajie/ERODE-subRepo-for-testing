@@ -23,6 +23,7 @@ public:
 	~RiverNode();
 
 	void setElevation(double);
+	double getElevation(double H, double W);
 	// setters and getters
 	//void updatePriority(int p);
 	//int getPriority();
