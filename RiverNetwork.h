@@ -1,17 +1,18 @@
 #pragma once
 
 #include "RiverBranches.h"
+#include "jc_voronoi.h"
 #include <vector>
 
 // class of cell
 class Cell
 {
-	RiverNode* center;
-	vector<RiverNode*> corners;
-
 public:
 
-	Cell();
+	RiverNode* center;
+	vector<vec2> corners;
+
+	Cell(RiverNode* center = nullptr);
 	~Cell();
 	float getArea();
 };
@@ -29,7 +30,7 @@ public:
 
 	vector<RiverNode*> nodes;
 	vector<RiverBranch*> branches;
-
+	vector<Cell*> cells;
 	vector<vector<RiverBranch*>> grids;
 	//this vector stores all the non-terminal nodes that currently can be expanded
 	vector<RiverNode*> nonTerminalNodes;
@@ -44,7 +45,6 @@ public:
 	RiverNetwork(int w = 0, int h = 0, double e = 0.0);
 	~RiverNetwork();
 
-
 	//create the nodes to start from
 	void initialNode();
 	//select candidate nodes for expansion
@@ -57,4 +57,18 @@ public:
 	bool validateNode(RiverNode* node, double boundary, RiverBranch* branch);
     //this function is account for computing the minimum elevation of current non-terminal nodes
 	void refreshMinele();
+
+	//auxiliary function for branching operations
+	int SymmetricBranching(RiverNode*);
+	int AsymmetricBranching(RiverNode*);
+	int Continuation(RiverNode*);
+
+	//transform the points into jc_voronoi format
+	jcv_point* transformFromNodes();
+	jcv_rect* getRectFromNodes();
+	
+	//generate the tessellation
+	jcv_diagram* voronoiTessellation();
+	//transform the voronoi tessellation into cells
+	void fillCells(jcv_diagram* diagram);
 };

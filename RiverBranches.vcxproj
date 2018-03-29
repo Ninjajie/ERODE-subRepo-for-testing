@@ -145,6 +145,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="jc_voronoi.h" />
     <ClInclude Include="RiverBranches.h" />
     <ClInclude Include="RiverNetwork.h" />
     <ClInclude Include="stdafx.h" />

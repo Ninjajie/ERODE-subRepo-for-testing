@@ -8,6 +8,17 @@
 #include <algorithm>
 #include <fstream>
 
+// for Voronoi tessellation
+#define JC_VORONOI_IMPLEMENTATION
+// If you wish to use doubles
+#define JCV_REAL_TYPE double
+//#define JCV_FABS fabs
+//#define JCV_ATAN2 atan2
+#include "jc_voronoi.h"
+
+
+
+#define DoubleCheck 1e-5
 extern vector<pair<int, int>> branchIndices(RiverBranch* branch, double step);
 
 int RiverBranch::index = 0;
@@ -45,15 +56,84 @@ RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
 	id = index;
 }
 
+//auxiliary functions and structures for check of line segment intersections
+struct Point
+{
+	double x;
+	double y;
+};
+
+// Given three colinear points p, q, r, the function checks if
+// point q lies on line segment 'pr'
+bool onSegment(Point p, Point q, Point r)
+{
+	if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+		q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+		return true;
+
+	return false;
+}
+
+// To find orientation of ordered triplet (p, q, r).
+// The function returns following values
+// 0 --> p, q and r are colinear
+// 1 --> Clockwise
+// 2 --> Counterclockwise
+int orientation(Point p, Point q, Point r)
+{
+	//cross product
+	double val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+
+	if (abs(val) <= DoubleCheck) return 0;  // colinear
+
+	return (val > 0) ? 1 : 2; // clock or counterclock wise
+}
+
+// The main function that returns true if line segment 'p1q1'
+// and 'p2q2' intersect.
+bool doIntersect(Point p1, Point q1, Point p2, Point q2)
+{
+	// Find the four orientations needed for general and
+	// special cases
+	int o1 = orientation(p1, q1, p2);
+	int o2 = orientation(p1, q1, q2);
+	int o3 = orientation(p2, q2, p1);
+	int o4 = orientation(p2, q2, q1);
+
+	// General case
+	if (o1 != o2 && o3 != o4)
+		return true;
+
+	// Special Cases
+	// p1, q1 and p2 are colinear and p2 lies on segment p1q1
+	if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+
+	// p1, q1 and q2 are colinear and q2 lies on segment p1q1
+	if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+
+	// p2, q2 and p1 are colinear and p1 lies on segment p2q2
+	if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+
+	// p2, q2 and q1 are colinear and q1 lies on segment p2q2
+	if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+	return false; // Doesn't fall in any of the above cases
+}
 double RiverBranch::distance(RiverBranch* branch) {
 
 	//distance from this to branch
 	double dis = DBL_MAX;
 
 	RiverBranch* base = branch, *cmp = this;
-	
+	//check if there are any intersections
+	struct Point tS = { cmp->start->position[0],cmp->start->position[1] }, tE = { cmp->end->position[0],cmp->end->position[1] };
+	struct Point bS = { base->start->position[0],base->start->position[1] }, bE = { base->end->position[0],base->end->position[1] };
+	if (doIntersect(tS, tE, bS, bE))
+	{
+		return 0.0;
+	}
+	//if no intersection, compute four(point, line segment)distance and get the smallest one
 	int num = 0;
-
 	while (num < 2) {
 
 		double dis1 = DBL_MAX;
@@ -72,6 +152,8 @@ double RiverBranch::distance(RiverBranch* branch) {
 		per.Normalize();
 
 		//calculate endpoints of this w.r.t branch start point
+		//T->this branch
+		//no T ->incoming branch
 		vec3 startT = this->start->position, endT = this->end->position;
 		if (startT[0] > endT[0]) swap(startT, endT);
 
@@ -81,9 +163,10 @@ double RiverBranch::distance(RiverBranch* branch) {
 			endT[1] - start[1]);
 
 		//t1 and t2 are projection on dir 
+		//t is the length of incoming branh
 		double t1 = Dot(offsetS, dir), t2 = Dot(offsetE, dir);
 		if (t2 < 0.0) {
-			dis1 = offsetS.Length();
+			dis1 = offsetE.Length();
 		}
 		else if (t1 > t) {
 			vec2 d = vec2(startT[0] - end[0], startT[1] - end[1]);
@@ -147,13 +230,22 @@ int main()
 		outId << RN.nodes[i]->id << endl;
 		outPri << RN.nodes[i]->priority << endl;
 	}
+	//Construct the voronoi cells
+	jcv_diagram* diagram = RN.voronoiTessellation();
+	RN.fillCells(diagram);
+	for (int i = 0; i < RN.cells.size(); i++)
+	{
+		std::cout << "Cell corner size" << RN.cells[i]->corners.size()<<std::endl;
+		std::cout << "Cell Area" << RN.cells[i]->getArea() << std::endl;
+	}
+
 	for (int i = 0; i < RN.branches.size(); i++) {
 		outBranchX << RN.branches[i]->start->position[0] << " " << RN.branches[i]->end->position[0] << endl;
 		outBranchY << RN.branches[i]->start->position[1] << " " << RN.branches[i]->end->position[1] << endl;
 	}
 
 	//test branch distance
-	RiverBranch* cur = RN.branches[min((unsigned int)10, RN.branches.size() - 1)];
+	RiverBranch* cur = RN.branches[min((unsigned int)10, (unsigned int)(RN.branches.size() - 1))];
 	cout << "cur branch = " << cur->start->position << " / " << cur->end->position << endl;
 	vector<pair<int, int>> idx = branchIndices(cur, 7.5);
 	for (auto id : idx) {

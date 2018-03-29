@@ -1,9 +1,21 @@
 ﻿  RiverNetwork.cpp
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(8): warning C4005: 'EPSILON': macro redefinition
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(9): warning C4005: 'EPSILON': macro redefinition
   c:\courses\cis660\homeworks\riverbranches\vec.h(51): note: see previous definition of 'EPSILON'
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(12): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(58): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(59): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-  RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\MayaPluginHw2\x64\Debug\RiverBranches.exe
-  RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\MayaPluginHw2\x64\Debug\RiverBranches.pdb (Full PDB)
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(18): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(54): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(55): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(87): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(88): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(105): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(106): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(511): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(516): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(517): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(531): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(532): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(540): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(594): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(601): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+  RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\RiverBranches\x64\Debug\RiverBranches.exe
+  RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\RiverBranches\x64\Debug\RiverBranches.pdb (Full PDB)
