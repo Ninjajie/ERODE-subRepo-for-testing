@@ -4,13 +4,15 @@
 #include <algorithm>
 #include <cmath>
 #include <utility>
+#include <fstream>
 
+#include "bitmap_image.hpp"
 
 #define EPSILON 0.0001
 
 #define DisRatio 0.75
 
-#define BranchLength 10
+#define BranchLength 30
 
 #define NEEDW 100
 
@@ -105,7 +107,7 @@ RiverNetwork::RiverNetwork(int w, int h, double e)
 	numW = std::ceil((double)width / (DisRatio * e));
 	numH = std::ceil((double)height / (DisRatio * e));
 	grids.resize(numH * numW, vector<RiverBranch*>());
-	elevationRange = 15.0;
+	elevationRange = 25.0;
 }
 
 RiverNetwork::~RiverNetwork()
@@ -115,6 +117,16 @@ RiverNetwork::~RiverNetwork()
 	{
 		delete nodes[i];
 	}
+}
+
+//after we import an image, we may need to resize the river map and therefore the underlying grids
+void RiverNetwork::Resize(int newWidth, int newHeight)
+{
+	this->width = newWidth;
+	this->height = newHeight;
+	numW = std::ceil((double)width / (DisRatio * e));
+	numH = std::ceil((double)height / (DisRatio * e));
+	grids.resize(numH * numW, vector<RiverBranch*>());
 }
 
 //select the nodes to start from
@@ -163,7 +175,7 @@ void RiverNetwork::initialNode()
 	RiverNode* mouth11 = new RiverNode(p[0], vec3(l1, e, 0), mouth1);
 	mouth11->id = mouth1->id;
 	//mouth11->setElevation(elevationMap[(int)(l1/ (DisRatio * e))][(int)(e/ (DisRatio * e))]);
-	mouth11->position[2] = mouth11->getElevation(height, width);
+	mouth11->position[2] = mouth11->getElevation(height, width, this->elevationMap);
 	nodes.push_back(mouth11);
 	nonTerminalNodes.push_back(mouth11);
 	RiverBranch* branch1 = new RiverBranch(mouth1, mouth11);
@@ -172,22 +184,24 @@ void RiverNetwork::initialNode()
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch1);
 	}
-	//RiverNode* mouth22 = new RiverNode(p[1], vec3((double)width - e, l2, 0), mouth2);
-	//mouth22->id = mouth2->id;
-	////mouth22->setElevation(elevationMap[(int)(((double)width - e) / (DisRatio * e))][(int)(l2 / (DisRatio * e))]);
-	//mouth22->position[2] = mouth22->getElevation(height, width);
-	//nodes.push_back(mouth22);
-	//nonTerminalNodes.push_back(mouth22);
-	//RiverBranch* branch2 = new RiverBranch(mouth2, mouth22);
-	//branches.push_back(branch2);
-	//idx = branchIndices(branch2, e * DisRatio);
-	//for (auto id : idx) {
-	//	grids[id.first * numW + id.second].push_back(branch2);
-	//}
+
+	RiverNode* mouth22 = new RiverNode(p[1], vec3((double)width - e, l2, 0), mouth2);
+	mouth22->id = mouth2->id;
+	//mouth22->setElevation(elevationMap[(int)(((double)width - e) / (DisRatio * e))][(int)(l2 / (DisRatio * e))]);
+	mouth22->position[2] = mouth22->getElevation(height, width, this->elevationMap);
+	nodes.push_back(mouth22);
+	nonTerminalNodes.push_back(mouth22);
+	RiverBranch* branch2 = new RiverBranch(mouth2, mouth22);
+	branches.push_back(branch2);
+	idx = branchIndices(branch2, e * DisRatio);
+	for (auto id : idx) {
+		grids[id.first * numW + id.second].push_back(branch2);
+	}
+
 	RiverNode* mouth33 = new RiverNode(p[2], vec3(l3, (double)height - e, 0), mouth3);
 	mouth33->id = mouth3->id;
 	//mouth33->setElevation(elevationMap[(int)(l3 / (DisRatio * e))][(int)(((double)height - e) / (DisRatio * e))]);
-	mouth33->position[2] = mouth33->getElevation(height, width);
+	mouth33->position[2] = mouth33->getElevation(height, width, this->elevationMap);
 	nodes.push_back(mouth33);
 	nonTerminalNodes.push_back(mouth33);
 	RiverBranch* branch3 = new RiverBranch(mouth3, mouth33);
@@ -196,18 +210,19 @@ void RiverNetwork::initialNode()
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch3);
 	}
-	//RiverNode* mouth44 = new RiverNode(p[3], vec3(e, l4, 0), mouth4);
-	//mouth44->id = mouth4->id;
-	////mouth44->setElevation(elevationMap[(int)(e / (DisRatio * e))][(int)(l4 / (DisRatio * e))]);
-	//mouth44->position[2] = mouth44->getElevation(height, width);
-	//nodes.push_back(mouth44);
-	//nonTerminalNodes.push_back(mouth44);
-	//RiverBranch* branch4 = new RiverBranch(mouth4, mouth44);
-	//branches.push_back(branch4);
-	//idx = branchIndices(branch4, e * DisRatio);
-	//for (auto id : idx) {
-	//	grids[id.first * numW + id.second].push_back(branch4);
-	//}
+
+	RiverNode* mouth44 = new RiverNode(p[3], vec3(e, l4, 0), mouth4);
+	mouth44->id = mouth4->id;
+	//mouth44->setElevation(elevationMap[(int)(e / (DisRatio * e))][(int)(l4 / (DisRatio * e))]);
+	mouth44->position[2] = mouth44->getElevation(height, width, this->elevationMap);
+	nodes.push_back(mouth44);
+	nonTerminalNodes.push_back(mouth44);
+	RiverBranch* branch4 = new RiverBranch(mouth4, mouth44);
+	branches.push_back(branch4);
+	idx = branchIndices(branch4, e * DisRatio);
+	for (auto id : idx) {
+		grids[id.first * numW + id.second].push_back(branch4);
+	}
 
 
 	//initialize the minimum elevation
@@ -262,12 +277,25 @@ RiverNode * RiverNetwork::selectNode()
 	{
 		if (candidateNodes[i]->priority >= maxP) maxP = candidateNodes[i]->priority;
 	}
-	//find the set of the nodes with the highest priority value
 	vector<RiverNode*> finalcandidateNodes;
-	for (int i = 0; i < candidateNodes.size(); i++)
+	// if all the nonterminal is of priority 1, we increase all their priorities by 1
+	if (maxP == 1)
 	{
-		if (candidateNodes[i]->priority == maxP)
+		maxP = 2;
+		for (int i = 0; i < candidateNodes.size(); i++)
+		{
+			candidateNodes[i]->priority = maxP;
 			finalcandidateNodes.push_back(candidateNodes[i]);
+		}
+	}
+	else
+	{
+		//find the set of the nodes with the highest priority value
+		for (int i = 0; i < candidateNodes.size(); i++)
+		{
+			if (candidateNodes[i]->priority == maxP)
+				finalcandidateNodes.push_back(candidateNodes[i]);
+		}
 	}
 	//if this set has more than one element, select the one with lowest elevation
 	if (finalcandidateNodes.size() > 1)
@@ -339,7 +367,7 @@ RiverNode* RiverNetwork::getCandidate(RiverNode* node, double angle, int p) {
 	vec2 FinalDir = dir * std::sin(Deg2Rad * angle) + perpen * std::cos(Deg2Rad * angle);
 	//double dx = e * std::cos(Deg2Rad * angle), dy = e * std::sin(Deg2Rad * angle);
 	RiverNode* resultNode =  new RiverNode(p, vec3(pos[0] + e * FinalDir[0], pos[1] + e * FinalDir[1], node->position[2] /*+ elevation*/), node);
-	resultNode->setElevation(resultNode->getElevation(height, width));
+	resultNode->setElevation(resultNode->getElevation(height, width, this->elevationMap));
 	return resultNode;
 }
 
@@ -373,13 +401,46 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 		if (id.first == parentIdx.first && id.second == parentIdx.second) continue;
 		//for all the left indices, check if there are any branches inside
 		int idx = id.first * numW + id.second;
-		if (id.first >= 0 && id.first < numH &&
-			id.second >= 0 && id.second < numW) 
+		if (id.first >= 0 && id.first < numW &&
+			id.second >= 0 && id.second < numH) 
 		{
+			//if there is a branch inside, then just return false
 			if (grids[idx].size() != 0)
 			{
 				branch = nullptr;
 				return false;
+			}
+			//else we need to check all the surronding grids and compute the distance
+			else
+			{
+				for (int verInd = -1; verInd <= 1; verInd++)
+				{
+					for (int horInd = -1; horInd <= 1; horInd++)
+					{
+						int subidx = (id.first + horInd) * numW + (id.second + verInd);
+						if (id.first + horInd >= 0 && id.first + horInd < numW &&
+							id.second + verInd >= 0 && id.second + verInd< numH)
+						{
+							//if there is at least one branch inside, then compute the distance
+							if (grids[subidx].size() != 0)
+							{
+								//iterate the branches inside, compute the distatnce
+								for (int indBranches = 0; indBranches < grids[subidx].size(); indBranches++)
+								{
+									RiverBranch* existBranch = grids[subidx][indBranches];
+									double distance = branch->distance(existBranch);
+									if (distance >= DisRatio * BranchLength)
+									{
+										branch = nullptr;
+										return false;
+									}
+								}
+							}
+						}
+						//else out of range
+						else continue;
+					}
+				}
 			}
 		}
 		//our of range
@@ -420,7 +481,7 @@ int RiverNetwork::SymmetricBranching(RiverNode* node)
 			newNode = getCandidate(node, currentAngle, newP);
 			//if a new node is avaliable at some position, add this node to the node list 
 			//also add this node to its parent's children list
-			if (validateNode(newNode, e * 0.25, branch))
+			if (validateNode(newNode, e * 0.75, branch))
 			{
 				newNode->id = node->id;
 				node->children.push_back(newNode);
@@ -567,6 +628,73 @@ void RiverNetwork::fillCells(jcv_diagram * diagram)
 			e = e->next;
 		}
 		this->cells.push_back(newcell);
+	}
+}
+
+void RiverNetwork::readBMP(const std::string file)
+{
+
+	bitmap_image image(file);
+
+	if (!image)
+	{
+		printf("Error - Failed to open: input.bmp\n");
+		return;
+	}
+
+	unsigned int total_number_of_pixels = 0;
+
+	const unsigned int height = image.height();
+	const unsigned int width = image.width();
+
+	for (std::size_t y = 0; y < height; ++y)
+	{
+		for (std::size_t x = 0; x < width; ++x)
+		{
+			rgb_t colour;
+
+			image.get_pixel(x, y, colour);
+
+			if (colour.red >= 111)
+				total_number_of_pixels++;
+		}
+	}
+
+	printf("Number of pixels with red >= 111: %d\n", total_number_of_pixels);
+
+
+	//ofstream heightValues("heightvalues2.txt");
+	//// get the vector <R,G,B> for the pixel at (1,1)
+	//std::cout << "width" << width << std::endl;
+	//std::cout << "height" << height << std::endl;
+	//for (int i = 0; i < image.width(); i++)
+	//{
+	//	std::vector<double> oneRow;
+	//	for (int j = 0; j < image.height(); j++)
+	//	{
+	//		// get the vector <R,G,B> for the pixel at (1,1)
+	//		std::vector<unsigned int> color_vector = heightMap.getPixel(i, j);
+	//		heightValues << color_vector[0] * 1.0 << std::endl;
+	//		oneRow.push_back(color_vector[0] * 1.0);
+	//	}
+	//	this->elevationMap.push_back(oneRow);
+	//}
+	std::cout << "OK" << std::endl;
+}
+
+void RiverNetwork::readElevation(const std::string elevationValues)
+{
+	ifstream elevations(elevationValues, std::ios::in);
+	for (int i = 0; i < 1024; i++)
+	{
+		std::vector<double> oneRow;
+		for (int j = 0; j < 1024; j++)
+		{
+			double toBeInput = 0.0;
+			elevations >> toBeInput;
+			oneRow.push_back(toBeInput);
+		}
+		this->elevationMap.push_back(oneRow);
 	}
 }
 

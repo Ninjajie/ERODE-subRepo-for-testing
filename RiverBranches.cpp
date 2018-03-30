@@ -173,7 +173,7 @@ double RiverBranch::distance(RiverBranch* branch) {
 			dis1 = d.Length();
 		}
 		else {
-			cout << "enter per, num = " << num << endl;
+			//cout << "enter per, num = " << num << endl;
 			if (t1 < 0.0) {
 				dis1 = abs(Dot(offsetE, per));
 			}
@@ -191,34 +191,45 @@ double RiverBranch::distance(RiverBranch* branch) {
 
 }
 
-double RiverNode::getElevation(double H, double W)
+//get the elevation from bitmap
+double RiverNode::getElevation(double H, double W, std::vector<vector<double>> &heightmap)
 {
-	return 100.0 * exp(-pow(position[0] - H / 2.0, 2.0) / 2000 - pow(position[1] - W / 2.0, 2.0) / 2000);
+	int x = int(position[0]);
+	int y = int(position[1]);
+	x = x >= 1024 ? 1023 : x;
+	y = y >= 1024 ? 1023 : y;
+	x = x <= 0 ? 0 : x;
+	y = y <= 0 ? 0 : y;
+	return heightmap[x][y];
+	//return 100.0 * exp(-pow(position[0] - H / 2.0, 2.0) / 200000 - pow(position[1] - W / 2.0, 2.0) / 200000);
 }
 
 // main function
 int main()
 {
-	RiverNetwork RN = RiverNetwork(100, 100, 10);
+	RiverNetwork RN = RiverNetwork(1024, 1024, 30);
+	//this step would construct a 1024 x 1024 double heightMap by assigning the values in elevationMap
+	RN.readBMP("../TestImage/gymHJ.bmp");
+	//RN.readBMP("../TestImage/HeightMap.bmp");
+	//RN.readElevation("heightvalues2.txt");
+
 	ofstream outX("../TestImage/x.txt");
 	ofstream outY("../TestImage/y.txt");
 	ofstream outId("../TestImage/index.txt");
 	ofstream outBranchX("../TestImage/branchx.txt");
 	ofstream outBranchY("../TestImage/branchy.txt");
 	ofstream outPri("../TestImage/pri.txt");
-	RN.initialNode();
+	//RN.initialNode();
 
-	//RiverNode* cNode = RN.selectNode(0.0);
-	//RN.expandNode(cNode);
-	for (int i = 0; i < 1000; i++)
-	{
-		RiverNode* cNode = RN.selectNode();
-		if (cNode == nullptr)
-		{
-			break;
-		}
-		RN.expandNode(cNode);
-	}
+	//for (int i = 0; i < 1000; i++)
+	//{
+	//	RiverNode* cNode = RN.selectNode();
+	//	if (cNode == nullptr)
+	//	{
+	//		break;
+	//	}
+	//	RN.expandNode(cNode);
+	//}
 	cout << RN.nodes.size() << endl;
 	for (int i = 0; i < RN.nodes.size(); i++)
 	{
@@ -231,13 +242,13 @@ int main()
 		outPri << RN.nodes[i]->priority << endl;
 	}
 	//Construct the voronoi cells
-	jcv_diagram* diagram = RN.voronoiTessellation();
-	RN.fillCells(diagram);
-	for (int i = 0; i < RN.cells.size(); i++)
-	{
-		std::cout << "Cell corner size" << RN.cells[i]->corners.size()<<std::endl;
-		std::cout << "Cell Area" << RN.cells[i]->getArea() << std::endl;
-	}
+	//jcv_diagram* diagram = RN.voronoiTessellation();
+	//RN.fillCells(diagram);
+	//for (int i = 0; i < RN.cells.size(); i++)
+	//{
+	//	std::cout << "Cell corner size" << RN.cells[i]->corners.size()<<std::endl;
+	//	std::cout << "Cell Area" << RN.cells[i]->getArea() << std::endl;
+	//}
 
 	for (int i = 0; i < RN.branches.size(); i++) {
 		outBranchX << RN.branches[i]->start->position[0] << " " << RN.branches[i]->end->position[0] << endl;
@@ -245,12 +256,12 @@ int main()
 	}
 
 	//test branch distance
-	RiverBranch* cur = RN.branches[min((unsigned int)10, (unsigned int)(RN.branches.size() - 1))];
-	cout << "cur branch = " << cur->start->position << " / " << cur->end->position << endl;
-	vector<pair<int, int>> idx = branchIndices(cur, 7.5);
-	for (auto id : idx) {
-		cout << id.first << " " << id.second << endl;
-	}
+	//RiverBranch* cur = RN.branches[min((unsigned int)10, (unsigned int)(RN.branches.size() - 1))];
+	//cout << "cur branch = " << cur->start->position << " / " << cur->end->position << endl;
+	//vector<pair<int, int>> idx = branchIndices(cur, 7.5);
+	//for (auto id : idx) {
+	//	cout << id.first << " " << id.second << endl;
+	//}
 
 	//RiverBranch* cmp = RN.branches[2];
 	//

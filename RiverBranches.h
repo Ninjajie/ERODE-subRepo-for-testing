@@ -27,7 +27,7 @@ public:
 	~RiverNode();
 
 	void setElevation(double);
-	double getElevation(double H, double W);
+	double getElevation(double H, double W, std::vector<vector<double>> &heightmap);
 	// setters and getters
 	//void updatePriority(int p);
 	//int getPriority();

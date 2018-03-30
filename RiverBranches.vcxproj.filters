@@ -36,6 +36,9 @@
     <ClInclude Include="jc_voronoi.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="bitmap_image.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

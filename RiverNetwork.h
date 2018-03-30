@@ -34,7 +34,8 @@ public:
 	vector<vector<RiverBranch*>> grids;
 	//this vector stores all the non-terminal nodes that currently can be expanded
 	vector<RiverNode*> nonTerminalNodes;
-	//vector<vector<double>> elevationMap;
+	//the elevation map
+	vector<vector<double>> elevationMap;
 
 	//current maximum priority
 	int maxP;
@@ -45,6 +46,8 @@ public:
 	RiverNetwork(int w = 0, int h = 0, double e = 0.0);
 	~RiverNetwork();
 
+	//in case we need to resize, we have to recreate the grid
+	void Resize(int newWidth, int newHeight);
 	//create the nodes to start from
 	void initialNode();
 	//select candidate nodes for expansion
@@ -71,4 +74,10 @@ public:
 	jcv_diagram* voronoiTessellation();
 	//transform the voronoi tessellation into cells
 	void fillCells(jcv_diagram* diagram);
+
+	//read the bitmap file into heightmap arrays
+	void readBMP(const std::string file);
+
+	//we dont want to load a bitmap more than once
+	void readElevation(const std::string elevationValues);
 };
