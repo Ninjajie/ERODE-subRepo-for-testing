@@ -209,27 +209,27 @@ int main()
 {
 	RiverNetwork RN = RiverNetwork(1024, 1024, 30);
 	//this step would construct a 1024 x 1024 double heightMap by assigning the values in elevationMap
-	RN.readBMP("../TestImage/gymHJ.bmp");
-	//RN.readBMP("../TestImage/HeightMap.bmp");
-	//RN.readElevation("heightvalues2.txt");
+	//RN.readBMP("/TestImage/gymHJ.bmp");
+	RN.readBMP("./TestImage/HeightMap.bmp");
+	//RN.readElevation("heightvalues.txt");
 
-	ofstream outX("../TestImage/x.txt");
-	ofstream outY("../TestImage/y.txt");
-	ofstream outId("../TestImage/index.txt");
-	ofstream outBranchX("../TestImage/branchx.txt");
-	ofstream outBranchY("../TestImage/branchy.txt");
-	ofstream outPri("../TestImage/pri.txt");
-	//RN.initialNode();
+	ofstream outX("./TestImage/x.txt");
+	ofstream outY("./TestImage/y.txt");
+	ofstream outId("./TestImage/index.txt");
+	ofstream outBranchX("./TestImage/branchx.txt");
+	ofstream outBranchY("./TestImage/branchy.txt");
+	ofstream outPri("./TestImage/pri.txt");
+	RN.initialNode();
 
-	//for (int i = 0; i < 1000; i++)
-	//{
-	//	RiverNode* cNode = RN.selectNode();
-	//	if (cNode == nullptr)
-	//	{
-	//		break;
-	//	}
-	//	RN.expandNode(cNode);
-	//}
+	for (int i = 0; i < 1000; i++)
+	{
+		RiverNode* cNode = RN.selectNode();
+		if (cNode == nullptr)
+		{
+			break;
+		}
+		RN.expandNode(cNode);
+	}
 	cout << RN.nodes.size() << endl;
 	for (int i = 0; i < RN.nodes.size(); i++)
 	{
@@ -241,6 +241,9 @@ int main()
 		outId << RN.nodes[i]->id << endl;
 		outPri << RN.nodes[i]->priority << endl;
 	}
+
+	//write the river results into a new bitmap file
+	RN.writeRivers("./TestImage/HeightMap.bmp");
 	//Construct the voronoi cells
 	//jcv_diagram* diagram = RN.voronoiTessellation();
 	//RN.fillCells(diagram);

@@ -80,4 +80,7 @@ public:
 
 	//we dont want to load a bitmap more than once
 	void readElevation(const std::string elevationValues);
+
+	//after generating rivers, we write the elevation info into the bitmap
+	void writeRivers(const std::string filename);
 };

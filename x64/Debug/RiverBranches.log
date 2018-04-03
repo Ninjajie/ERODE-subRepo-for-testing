@@ -1,24 +1,26 @@
 ﻿  RiverNetwork.cpp
 c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(11): warning C4005: 'EPSILON': macro redefinition
   c:\courses\cis660\homeworks\riverbranches\vec.h(51): note: see previous definition of 'EPSILON'
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(56): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(57): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(89): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(90): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(107): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(108): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(127): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(128): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(572): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(577): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(578): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(592): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(24): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(25): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(67): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(68): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(105): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(106): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(123): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(124): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(143): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(144): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(588): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(593): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(601): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(656): warning C4267: 'argument': conversion from 'size_t' to 'const unsigned int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(722): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(729): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(594): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(608): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(609): warning C4244: '=': conversion from 'double' to 'jcv_real', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(617): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(677): warning C4267: 'argument': conversion from 'size_t' to 'const unsigned int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(711): warning C4018: '<': signed/unsigned mismatch
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(713): warning C4018: '<': signed/unsigned mismatch
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(757): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\courses\cis660\homeworks\riverbranches\rivernetwork.cpp(764): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
   RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\RiverBranches\x64\Debug\RiverBranches.exe
   RiverBranches.vcxproj -> C:\Courses\CIS660\HomeWorks\RiverBranches\x64\Debug\RiverBranches.pdb (Full PDB)

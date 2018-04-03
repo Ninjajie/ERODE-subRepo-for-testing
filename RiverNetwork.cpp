@@ -14,7 +14,11 @@
 
 #define BranchLength 30
 
-#define NEEDW 100
+#define ElevationConstraint 12
+
+#define NEEDW 46
+
+#define PIXELX 1024
 
 pair<int, int> mapGrid(vec3 pos, double step) {
 	int i = std::floor(pos[0] / step);
@@ -23,7 +27,7 @@ pair<int, int> mapGrid(vec3 pos, double step) {
 }
 
 
-vector<pair<int, int>> branchIndices(RiverBranch* branch, double step) {
+vector<pair<int, int>> branchIndices(RiverBranch* branch, double step, bool pixelwise) {
 
 	vec3 startP = branch->start->position;
 	vec3 endP = branch->end->position;
@@ -44,9 +48,16 @@ vector<pair<int, int>> branchIndices(RiverBranch* branch, double step) {
 			std::swap(startP, endP);
 			std::swap(start, end);
 		}
-		for (int x = start.first; x <= end.first && x < NEEDW; ++x) {
-			double s0 = max(startP[0], x * BranchLength * DisRatio);
-			double s1 = min(endP[0], (x + 1) * BranchLength * DisRatio);
+		int maxX = NEEDW;
+		double singleStep = BranchLength * DisRatio;
+		if (pixelwise)
+		{
+			maxX = PIXELX;
+			singleStep = 1.0;
+		}
+		for (int x = start.first; x <= end.first && x < maxX; ++x) {
+			double s0 = max(startP[0], x * singleStep);
+			double s1 = min(endP[0], (x + 1) * singleStep);
 
 			//cout << "s0 = " << s0 << ", s1 = " << s1 << endl;
 
@@ -59,7 +70,7 @@ vector<pair<int, int>> branchIndices(RiverBranch* branch, double step) {
 			if (ys > ye) {
 				swap(ys, ye);
 			}
-			for (int y = ys; y <= ye && y < NEEDW; ++y) {
+			for (int y = ys; y <= ye && y < maxX; ++y) {
 				res.push_back(pair<int, int>(y, x));
 				//cout << "x = " << x << ", y = " << y << endl;
 			}
@@ -74,11 +85,16 @@ vector<pair<int, int>> branchIndices(RiverBranch* branch, double step) {
 		std::swap(startP, endP);
 		std::swap(start, end);
 	}
-	//cout << "start = " << start.first << "," << start.second << endl;
-	//cout << "end = " << end.first << "," << end.second << endl;
-	for (int x = start.first; x <= end.first && x < NEEDW; ++x) {
-		double s0 = max(startP[0], x * BranchLength * DisRatio);
-		double s1 = min(endP[0], (x + 1) * BranchLength * DisRatio);
+	int maxX = NEEDW;
+	double singleStep = BranchLength * DisRatio;
+	if (pixelwise)
+	{
+		maxX = PIXELX;
+		singleStep = 1.0;
+	}
+	for (int x = start.first; x <= end.first && x < maxX; ++x) {
+		double s0 = max(startP[0], x * singleStep);
+		double s1 = min(endP[0], (x + 1) * singleStep);
 
 
 		//cout << "s0 = " << s0 << ", s1 = " << s1 << endl;
@@ -180,7 +196,7 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth11);
 	RiverBranch* branch1 = new RiverBranch(mouth1, mouth11);
 	branches.push_back(branch1);
-	vector<pair<int, int>> idx = branchIndices(branch1, e * DisRatio);
+	vector<pair<int, int>> idx = branchIndices(branch1, e * DisRatio,false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch1);
 	}
@@ -193,7 +209,7 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth22);
 	RiverBranch* branch2 = new RiverBranch(mouth2, mouth22);
 	branches.push_back(branch2);
-	idx = branchIndices(branch2, e * DisRatio);
+	idx = branchIndices(branch2, e * DisRatio, false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch2);
 	}
@@ -206,7 +222,7 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth33);
 	RiverBranch* branch3 = new RiverBranch(mouth3, mouth33);
 	branches.push_back(branch3);
-	idx = branchIndices(branch3, e * DisRatio);
+	idx = branchIndices(branch3, e * DisRatio, false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch3);
 	}
@@ -219,7 +235,7 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth44);
 	RiverBranch* branch4 = new RiverBranch(mouth4, mouth44);
 	branches.push_back(branch4);
-	idx = branchIndices(branch4, e * DisRatio);
+	idx = branchIndices(branch4, e * DisRatio, false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch4);
 	}
@@ -382,7 +398,7 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 {
 
 	// check elevation correctness
-	if (node->position[2] < node->parent->position[2] ) {
+	if (node->position[2] < node->parent->position[2] - ElevationConstraint) {
 		return false;
 	}
 	// check if within boundary
@@ -394,7 +410,7 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 	}
 	// check collision with other branches
 	branch = new RiverBranch(node->parent, node);
-	vector<pair<int, int>> indices = branchIndices(branch, e * DisRatio);
+	vector<pair<int, int>> indices = branchIndices(branch, e * DisRatio, false);
 	pair<int, int> parentIdx = mapGrid(node->parent->position, e * DisRatio);
 	for (auto id : indices) {
 		//skip the parent grid
@@ -481,7 +497,7 @@ int RiverNetwork::SymmetricBranching(RiverNode* node)
 			newNode = getCandidate(node, currentAngle, newP);
 			//if a new node is avaliable at some position, add this node to the node list 
 			//also add this node to its parent's children list
-			if (validateNode(newNode, e * 0.75, branch))
+			if (validateNode(newNode, e * DisRatio, branch))
 			{
 				newNode->id = node->id;
 				node->children.push_back(newNode);
@@ -647,39 +663,26 @@ void RiverNetwork::readBMP(const std::string file)
 	const unsigned int height = image.height();
 	const unsigned int width = image.width();
 
+
+
+	ofstream heightValues("heightvalues.txt");
+	// get the vector <R,G,B> for the pixel at (w,h)
 	for (std::size_t y = 0; y < height; ++y)
 	{
+		std::vector<double> oneRow;
 		for (std::size_t x = 0; x < width; ++x)
 		{
+			// get the vector <R,G,B> for the pixel at (1,1)
 			rgb_t colour;
-
 			image.get_pixel(x, y, colour);
-
-			if (colour.red >= 111)
-				total_number_of_pixels++;
+			heightValues << static_cast<int>(colour.red) << std::endl;
+			oneRow.push_back(static_cast<double>(colour.red));
 		}
+		this->elevationMap.push_back(oneRow);
 	}
 
 	printf("Number of pixels with red >= 111: %d\n", total_number_of_pixels);
 
-
-	//ofstream heightValues("heightvalues2.txt");
-	//// get the vector <R,G,B> for the pixel at (1,1)
-	//std::cout << "width" << width << std::endl;
-	//std::cout << "height" << height << std::endl;
-	//for (int i = 0; i < image.width(); i++)
-	//{
-	//	std::vector<double> oneRow;
-	//	for (int j = 0; j < image.height(); j++)
-	//	{
-	//		// get the vector <R,G,B> for the pixel at (1,1)
-	//		std::vector<unsigned int> color_vector = heightMap.getPixel(i, j);
-	//		heightValues << color_vector[0] * 1.0 << std::endl;
-	//		oneRow.push_back(color_vector[0] * 1.0);
-	//	}
-	//	this->elevationMap.push_back(oneRow);
-	//}
-	std::cout << "OK" << std::endl;
 }
 
 void RiverNetwork::readElevation(const std::string elevationValues)
@@ -696,6 +699,38 @@ void RiverNetwork::readElevation(const std::string elevationValues)
 		}
 		this->elevationMap.push_back(oneRow);
 	}
+}
+
+void RiverNetwork::writeRivers(const std::string filename)
+{
+	bitmap_image originHeightmap(filename);
+	int w = originHeightmap.width();
+	int h = originHeightmap.height();
+	bitmap_image alteredHeightmap(w, h);
+	//first we just copy the original image
+	for (unsigned int y = 0; y < h; ++y)
+	{
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			rgb_t colour;
+			originHeightmap.get_pixel(x, y, colour);
+			alteredHeightmap.set_pixel(x, y, colour);
+		}
+	}
+	//then for all the branches, we alter the corresponding pixel values
+	for (auto branch : this->branches)
+	{
+		//here for the only time we pass true to the pixelwise argument
+		std::vector<pair<int, int>> corespondPixels = branchIndices(branch, 1.0, true);
+		for (auto indices : corespondPixels)
+		{
+			rgb_t newColor;
+			newColor.red = newColor.green = newColor.blue = static_cast<unsigned char>(0);
+			alteredHeightmap.set_pixel(indices.first, indices.second, newColor);
+		}
+	}
+
+	alteredHeightmap.save_image("alteredHeightmap.bmp");
 }
 
 
