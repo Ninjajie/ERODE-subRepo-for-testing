@@ -19,7 +19,7 @@
 
 
 #define DoubleCheck 1e-5
-extern vector<pair<int, int>> branchIndices(RiverBranch* branch, double step);
+extern vector<pair<int, int>> branchIndices(RiverBranch* branch, double step,bool pixelwise);
 
 int RiverBranch::index = 0;
 int RiverNode::index = 0;
@@ -209,8 +209,8 @@ int main()
 {
 	RiverNetwork RN = RiverNetwork(1024, 1024, 30);
 	//this step would construct a 1024 x 1024 double heightMap by assigning the values in elevationMap
-	//RN.readBMP("/TestImage/gymHJ.bmp");
-	RN.readBMP("./TestImage/HeightMap.bmp");
+	RN.readBMP("./TestImage/gymHJ.bmp");
+	//RN.readBMP("./TestImage/HeightMap.bmp");
 	//RN.readElevation("heightvalues.txt");
 
 	ofstream outX("./TestImage/x.txt");
@@ -243,7 +243,7 @@ int main()
 	}
 
 	//write the river results into a new bitmap file
-	RN.writeRivers("./TestImage/HeightMap.bmp");
+	RN.writeRivers("./TestImage/gymHJ.bmp");
 	//Construct the voronoi cells
 	//jcv_diagram* diagram = RN.voronoiTessellation();
 	//RN.fillCells(diagram);

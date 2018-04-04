@@ -444,8 +444,10 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 								for (int indBranches = 0; indBranches < grids[subidx].size(); indBranches++)
 								{
 									RiverBranch* existBranch = grids[subidx][indBranches];
+									//we need to check if this branch is his parent or brother/sister
+									if (existBranch->start == branch->start || existBranch->end == branch->start)continue;
 									double distance = branch->distance(existBranch);
-									if (distance >= DisRatio * BranchLength)
+									if (distance < DisRatio * BranchLength)
 									{
 										branch = nullptr;
 										return false;
@@ -730,7 +732,7 @@ void RiverNetwork::writeRivers(const std::string filename)
 		}
 	}
 
-	alteredHeightmap.save_image("alteredHeightmap.bmp");
+	alteredHeightmap.save_image("alteredHeightmapNew.bmp");
 }
 
 
