@@ -14,7 +14,9 @@
 
 #define BranchLength 30
 
-#define ElevationConstraint 12
+#define ElevationConstraint 5
+
+#define ElevationPercentile 0.05
 
 #define NEEDW 46
 
@@ -398,7 +400,7 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 {
 
 	// check elevation correctness
-	if (node->position[2] < node->parent->position[2] - ElevationConstraint) {
+	if (node->position[2] < node->parent->position[2] *(1.0 - ElevationPercentile)) {
 		return false;
 	}
 	// check if within boundary
@@ -682,9 +684,6 @@ void RiverNetwork::readBMP(const std::string file)
 		}
 		this->elevationMap.push_back(oneRow);
 	}
-
-	printf("Number of pixels with red >= 111: %d\n", total_number_of_pixels);
-
 }
 
 void RiverNetwork::readElevation(const std::string elevationValues)
@@ -732,7 +731,7 @@ void RiverNetwork::writeRivers(const std::string filename)
 		}
 	}
 
-	alteredHeightmap.save_image("alteredHeightmapNew.bmp");
+	alteredHeightmap.save_image("alteredHeightmap.bmp");
 }
 
 
