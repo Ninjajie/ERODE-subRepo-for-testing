@@ -5,22 +5,16 @@
 #include <cmath>
 #include <utility>
 #include <fstream>
+#include <math.h>
+#include <set>
 
 #include "bitmap_image.hpp"
 
 #define EPSILON 0.0001
 
-#define DisRatio 0.75
-
-#define BranchLength 30
-
-#define ElevationConstraint 5
-
-#define ElevationPercentile 0.05
-
-#define NEEDW 46
-
 #define PIXELX 1024
+
+#define SmoothRadius 9
 
 pair<int, int> mapGrid(vec3 pos, double step) {
 	int i = std::floor(pos[0] / step);
@@ -29,10 +23,10 @@ pair<int, int> mapGrid(vec3 pos, double step) {
 }
 
 
-vector<pair<int, int>> branchIndices(RiverBranch* branch, double step, bool pixelwise) {
+vector<pair<int, int>> branchIndices(vec3 startP, vec3 endP, int NEEDW, double BranchLength, double BranchWidth, double DisRatio, double step, bool pixelwise, int type) {
 
-	vec3 startP = branch->start->position;
-	vec3 endP = branch->end->position;
+	//vec3 startP = branch->start->position;
+	//vec3 endP = branch->end->position;
 
 	vector<pair<int, int>> res;
 
@@ -57,26 +51,69 @@ vector<pair<int, int>> branchIndices(RiverBranch* branch, double step, bool pixe
 			maxX = PIXELX;
 			singleStep = 1.0;
 		}
-		for (int x = start.first; x <= end.first && x < maxX; ++x) {
-			double s0 = max(startP[0], x * singleStep);
-			double s1 = min(endP[0], (x + 1) * singleStep);
+		if (type == 0 || !pixelwise) {
+			for (int x = start.first; x <= end.first && x < maxX; ++x) {
+				double s0 = max(startP[0], x * singleStep);
+				double s1 = min(endP[0], (x + 1) * singleStep);
 
-			//cout << "s0 = " << s0 << ", s1 = " << s1 << endl;
 
-			double y1 = (s0 - startP[0]) * deltay / deltax + startP[1];
-			double y2 = (s1 - startP[0]) * deltay / deltax + startP[1];
+				double y1 = (s0 - startP[0]) * deltay / deltax + startP[1];
+				double y2 = (s1 - startP[0]) * deltay / deltax + startP[1];
 
-			int ys = std::floor(y1 / step);
-			int ye = std::floor(y2 / step);
+				int ys = std::floor(y1 / step);
+				int ye = std::floor(y2 / step);
 
-			if (ys > ye) {
-				swap(ys, ye);
-			}
-			for (int y = ys; y <= ye && y < maxX; ++y) {
-				res.push_back(pair<int, int>(y, x));
-				//cout << "x = " << x << ", y = " << y << endl;
+				if (ys > ye) {
+					swap(ys, ye);
+				}
+				for (int y = ys; y <= ye && y < maxX; ++y) {
+					res.push_back(pair<int, int>(y, x));
+				}
 			}
 		}
+		else if(type == 1){
+
+			swap(start.first, start.second);
+			swap(end.first, end.second);
+			vec2 half((start.first + end.first) / 2.0, (start.second + end.second) / 2.0);
+			vec2 dir(1.0, 0.0);
+
+
+			vec2 m1 = (vec2(start.first, start.second) + half) / 2.0;
+			vec2 m2 = (vec2(end.first, end.second) + half) / 2.0;
+
+			vec2 l = m1 - dir * BranchWidth;
+			vec2 r = m2 + dir * BranchWidth;
+
+			// De Casteljau's algorithm
+			set<pair<int, int>> points;
+
+			int dx = floor(sqrt(deltax * deltax + deltay * deltay) / 2.0);
+
+			int num = dx * 20.0;
+			double dt = 1.0 / (double)num;
+
+			double t = 0;
+			for (int i = 0; i < num; ++i) {
+				double x = pow(1 - t, 2.0) * start.first + 2.0 * (1 - t) * t * l[0] + pow(t, 2.0) * half[0];
+				double y = pow(1 - t, 2.0) * start.second + 2.0 * (1 - t) * t * l[1] + pow(t, 2.0) * half[1];
+				points.insert(pair<int, int>(x, y));
+				t += dt;
+			}
+
+			t = 0;
+			for (int i = 0; i < num; ++i) {
+				double x = pow(1 - t, 2.0) * half[0] + 2.0 * (1 - t) * t * r[0] + pow(t, 2.0) * end.first;
+				double y = pow(1 - t, 2.0) * half[1] + 2.0 * (1 - t) * t * r[1] + pow(t, 2.0) * end.second;
+				points.insert(pair<int, int>(x, y));
+				t += dt;
+			}
+
+			for (auto s : points) {
+				res.push_back(s);
+			}
+		}
+		
 		return res;
 	}
 	//else, as normal
@@ -87,6 +124,7 @@ vector<pair<int, int>> branchIndices(RiverBranch* branch, double step, bool pixe
 		std::swap(startP, endP);
 		std::swap(start, end);
 	}
+
 	int maxX = NEEDW;
 	double singleStep = BranchLength * DisRatio;
 	if (pixelwise)
@@ -94,34 +132,116 @@ vector<pair<int, int>> branchIndices(RiverBranch* branch, double step, bool pixe
 		maxX = PIXELX;
 		singleStep = 1.0;
 	}
-	for (int x = start.first; x <= end.first && x < maxX; ++x) {
-		double s0 = max(startP[0], x * singleStep);
-		double s1 = min(endP[0], (x + 1) * singleStep);
 
+	if (type == 0 || !pixelwise) {
+		for (int x = start.first; x <= end.first && x < maxX; ++x) {
+			double s0 = max(startP[0], x * singleStep);
+			double s1 = min(endP[0], (x + 1) * singleStep);
 
-		//cout << "s0 = " << s0 << ", s1 = " << s1 << endl;
+			double y1 = (s0 - startP[0]) * deltay / deltax + startP[1];
+			double y2 = (s1 - startP[0]) * deltay / deltax + startP[1];
 
-		double y1 = (s0 - startP[0]) * deltay / deltax + startP[1];
-		double y2 = (s1 - startP[0]) * deltay / deltax + startP[1];
+			int ys = std::floor(y1 / step);
+			int ye = std::floor(y2 / step);
 
-		int ys = std::floor(y1 / step);
-		int ye = std::floor(y2 / step);
-
-		if (ys > ye) {
-			swap(ys, ye);
-		}
-		for (int y = ys; y <= ye; ++y) {
-			res.push_back(pair<int, int>(x, y));
-			//cout << "x = " << x << ", y = " << y << endl;
+			if (ys > ye) {
+				swap(ys, ye);
+			}
+			for (int y = ys; y <= ye; ++y) {
+				res.push_back(pair<int, int>(x, y));
+			}
 		}
 	}
+	else if (type == 1) {
+
+		vec2 half((start.first + end.first) / 2.0, (start.second + end.second) / 2.0);
+		vec2 dir(deltay, -deltax);
+		dir.Normalize();
+
+		vec2 m1 = (vec2(start.first, start.second) + half) / 2.0;
+		vec2 m2 = (vec2(end.first, end.second) + half) / 2.0;
+
+		vec2 l = m1 - dir * BranchWidth;
+		vec2 r = m2 + dir * BranchWidth;
+
+		// De Casteljau's algorithm
+		set<pair<int, int>> points;
+
+		int dx = floor(sqrt(deltax * deltax + deltay * deltay) / 2.0);
+
+		int num = dx * 20.0;
+		double dt = 1.0 / (double)num;
+
+		double t = 0;
+		for (int i = 0; i < num; ++i) {
+			double x = pow(1 - t, 2.0) * start.first + 2.0 * (1 - t) * t * l[0] + pow(t, 2.0) * half[0];
+			double y = pow(1 - t, 2.0) * start.second + 2.0 * (1 - t) * t * l[1] + pow(t, 2.0) * half[1];
+			points.insert(pair<int, int>(x, y));
+			t += dt;
+		}
+
+		t = 0;
+		for (int i = 0; i < num; ++i) {
+			double x = pow(1 - t, 2.0) * half[0] + 2.0 * (1 - t) * t * r[0] + pow(t, 2.0) * end.first;
+			double y = pow(1 - t, 2.0) * half[1] + 2.0 * (1 - t) * t * r[1] + pow(t, 2.0) * end.second;
+			points.insert(pair<int, int>(x, y));
+			t += dt;
+		}
+		
+		for (auto s : points) {
+			res.push_back(s);
+		}
+
+	}
+
 	return res;
 }
 
+vector<pair<int, int>> branchIndices(RiverBranch* branch, int NEEDW, double BranchLength, double BranchWidth, double DisRatio, double step, bool pixelwise) {
+	return branchIndices(branch->start->position, branch->end->position, NEEDW, BranchLength, BranchWidth, DisRatio, step, pixelwise, branch->branchType);
+}
 
-RiverNetwork::RiverNetwork(int w, int h, double e)
-	:width(w), height(h), e(e),minElevation(0.0)
+
+int clamp(int a, int l, int r) {
+	return (a > r ? r : (a < l ? l : a));
+}
+
+
+vector<vector<double>> getKernel(int radius) {
+	
+	vector<vector<double>> kernel(radius * 2 + 1, vector<double>(radius * 2 + 1, 0.0));
+
+	double sigma = 1.0;
+	double s = 2.0 * sigma * sigma, r;
+
+	double sum = 0.0;
+
+	for (int x = -radius; x <= radius; ++x) {
+		for (int y = -radius; y <= radius; ++y) {
+			r = sqrt(x * x + y * y);
+			kernel[x + radius][y + radius] = (exp(-(r * r) / s)) / (M_PI * s);
+			sum += kernel[x + radius][y + radius];
+		}
+	}
+
+	for (int i = 0; i < radius * 2 + 1; ++i) {
+		for (int j = 0; j < radius * 2 + 1; ++j) {
+			kernel[i][j] /= sum;
+		}
+	}
+
+	return kernel;
+}
+
+
+
+RiverNetwork::RiverNetwork(int w, int h, double e, double eleC, double eleP,
+	double disR, double ps, double pa, double rWid, double rH, double bW)
+	:width(w), height(h), e(e), minElevation(0.0), ElevationConstraint(eleC),
+	ElevationPercentile(eleP), DisRatio(disR), ps(ps), pa(pa), RiverWidth(rWid),
+	RiverHeight(rH), BranchWidth(bW)
 {
+	NEEDW = ceil(PIXELX / (e * DisRatio));
 	numW = std::ceil((double)width / (DisRatio * e));
 	numH = std::ceil((double)height / (DisRatio * e));
 	grids.resize(numH * numW, vector<RiverBranch*>());
@@ -190,6 +310,8 @@ void RiverNetwork::initialNode()
 
 	//we first apply a continuation for the initial mouths
 
+	
+
 	RiverNode* mouth11 = new RiverNode(p[0], vec3(l1, e, 0), mouth1);
 	mouth11->id = mouth1->id;
 	//mouth11->setElevation(elevationMap[(int)(l1/ (DisRatio * e))][(int)(e/ (DisRatio * e))]);
@@ -198,7 +320,7 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth11);
 	RiverBranch* branch1 = new RiverBranch(mouth1, mouth11);
 	branches.push_back(branch1);
-	vector<pair<int, int>> idx = branchIndices(branch1, e * DisRatio,false);
+	vector<pair<int, int>> idx = branchIndices(branch1, NEEDW, e, BranchWidth, DisRatio, e * DisRatio,  false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch1);
 	}
@@ -211,7 +333,7 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth22);
 	RiverBranch* branch2 = new RiverBranch(mouth2, mouth22);
 	branches.push_back(branch2);
-	idx = branchIndices(branch2, e * DisRatio, false);
+	idx = branchIndices(branch2, NEEDW, e, BranchWidth, DisRatio, e * DisRatio, false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch2);
 	}
@@ -224,7 +346,7 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth33);
 	RiverBranch* branch3 = new RiverBranch(mouth3, mouth33);
 	branches.push_back(branch3);
-	idx = branchIndices(branch3, e * DisRatio, false);
+	idx = branchIndices(branch3, NEEDW, e, BranchWidth, DisRatio, e * DisRatio, false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch3);
 	}
@@ -237,10 +359,11 @@ void RiverNetwork::initialNode()
 	nonTerminalNodes.push_back(mouth44);
 	RiverBranch* branch4 = new RiverBranch(mouth4, mouth44);
 	branches.push_back(branch4);
-	idx = branchIndices(branch4, e * DisRatio, false);
+	idx = branchIndices(branch4, NEEDW, e, BranchWidth, DisRatio, e * DisRatio, false);
 	for (auto id : idx) {
 		grids[id.first * numW + id.second].push_back(branch4);
 	}
+	
 
 
 	//initialize the minimum elevation
@@ -346,11 +469,11 @@ void RiverNetwork::expandNode(RiverNode * node)
 	{
 		double prob = (double)std::rand() / (double)RAND_MAX;
 		// symmetric
-		if (prob >= 0.0 && prob < 0.3) {
+		if (prob >= 0.0 && prob < ps) {
 			this->SymmetricBranching(node);
 		}
 		// asymmetric
-		else if (prob > 0.3 && prob <= 0.9) {
+		else if (prob > ps && prob <= (ps + pa)) {
 			this->AsymmetricBranching(node);
 		}
 		// continuation
@@ -372,7 +495,7 @@ void RiverNetwork::expandNode(RiverNode * node)
 		}
 	}
 	nonTerminalNodes.erase(nonTerminalNodes.begin() + ind);
-	std::cout << nonTerminalNodes.size() << std::endl;
+	//std::cout << nonTerminalNodes.size() << std::endl;
 
 }
 
@@ -412,7 +535,7 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 	}
 	// check collision with other branches
 	branch = new RiverBranch(node->parent, node);
-	vector<pair<int, int>> indices = branchIndices(branch, e * DisRatio, false);
+	vector<pair<int, int>> indices = branchIndices(branch, NEEDW, e, BranchWidth, DisRatio, e * DisRatio, false);
 	pair<int, int> parentIdx = mapGrid(node->parent->position, e * DisRatio);
 	for (auto id : indices) {
 		//skip the parent grid
@@ -449,7 +572,7 @@ bool RiverNetwork::validateNode(RiverNode * node, double boundary, RiverBranch* 
 									//we need to check if this branch is his parent or brother/sister
 									if (existBranch->start == branch->start || existBranch->end == branch->start)continue;
 									double distance = branch->distance(existBranch);
-									if (distance < DisRatio * BranchLength)
+									if (distance < DisRatio * e)
 									{
 										branch = nullptr;
 										return false;
@@ -722,7 +845,8 @@ void RiverNetwork::writeRivers(const std::string filename)
 	for (auto branch : this->branches)
 	{
 		//here for the only time we pass true to the pixelwise argument
-		std::vector<pair<int, int>> corespondPixels = branchIndices(branch, 1.0, true);
+
+		std::vector<pair<int, int>> corespondPixels = branchIndices(branch, NEEDW, e, BranchWidth, DisRatio, 1.0, true);
 		for (auto indices : corespondPixels)
 		{
 			rgb_t newColor;
@@ -731,7 +855,202 @@ void RiverNetwork::writeRivers(const std::string filename)
 		}
 	}
 
-	alteredHeightmap.save_image("alteredHeightmap.bmp");
+	string outputFilename = filename;
+
+	std::size_t pos = outputFilename.find(".bmp");
+
+	outputFilename = outputFilename.substr(0, pos);
+
+	outputFilename += "Altered.bmp";
+
+	alteredHeightmap.save_image(outputFilename);
+}
+
+
+void RiverNetwork::writeRiversFromElevation(const std::string filename) {
+	bitmap_image omap(filename);
+	int w = omap.width();
+	int h = omap.height();
+	bitmap_image map(w, h);
+	for (unsigned int i = 0; i < w; ++i) {
+		for (unsigned int j = 0; j < h; ++j) {
+			rgb_t color;
+			color.red = color.green = color.blue = static_cast<unsigned char>(elevationMap[j][i]);
+			map.set_pixel(i, j, color);
+		}
+	}
+
+	string outputFilename = filename;
+
+	std::size_t pos = outputFilename.find(".bmp");
+
+	outputFilename = outputFilename.substr(0, pos);
+
+	string o1 = outputFilename;
+	o1 += "Carved.bmp";
+
+	map.save_image(o1);
+
+	bitmap_image maps(w, h);
+	for (unsigned int i = 0; i < w; ++i) {
+		for (unsigned int j = 0; j < h; ++j) {
+			rgb_t color;
+			color.red = color.green = color.blue = static_cast<unsigned char>(elevationMapSmoothed[j][i]);
+			maps.set_pixel(i, j, color);
+		}
+	}
+
+	string o2 = outputFilename;
+	o2 += "CarvedSmoothed.bmp";
+
+	maps.save_image(o2);
+}
+
+// carve away river
+void RiverNetwork::carveRiver() {
+
+	vector<vector<double>> tmpMap = elevationMap;
+	
+	// for each branch, find rightmost point and leftmost point for every pixel along its carving direction 
+	for (auto branch : branches) {
+
+		vec2 dir;
+		dir = branch->getCarveDirection();
+
+		std::vector<pair<int, int>> pixels = branchIndices(branch, NEEDW, e, BranchWidth, DisRatio, 1.0, true);
+
+		double startW = log(branch->start->priority * 5.0), endW = log(branch->end->priority * 5.0);
+
+		for (auto p : pixels) {
+
+			vec2 origin(p.first, p.second);
+
+			double t = std::sqrt(std::pow(origin[0] - branch->start->position[0], 2.0) +
+				std::pow(origin[1] - branch->start->position[1], 2.0)) /
+				std::sqrt(std::pow(branch->end->position[0] - branch->start->position[0], 2.0) +
+					std::pow(branch->end->position[1] - branch->start->position[1], 2.0));
+
+			t = startW + (endW - startW) * t;
+
+			vec2 l = -RiverWidth * t * dir + origin;
+			vec2 r = RiverWidth * t * dir + origin;
+
+			pair<int, int> left(l[0], l[1]), right(r[0], r[1]);
+
+			// make sure the left point is left to origin point w.r.t world space
+			if (left.first > right.first) {
+				std::swap(left, right);
+			}
+
+			left.first = clamp(left.first, 0, tmpMap.size() - 1);
+			left.second = clamp(left.second, 0, tmpMap.size() - 1);
+			right.first = clamp(right.first, 0, tmpMap.size() - 1);
+			right.second = clamp(right.second, 0, tmpMap.size() - 1);
+			
+
+			double heightL = tmpMap[left.second][left.first];
+			double heightR = tmpMap[right.second][right.first];
+
+			// calculate the height of middle point
+			double lowestHeight = std::min(heightL, heightR) - RiverHeight * t;
+			lowestHeight = lowestHeight > 0.0 ? lowestHeight : 0.0;
+
+			auto pointsAlongDir = branchIndices(vec3(left.first, left.second, 0), vec3(right.first, right.second, 0), NEEDW, e, BranchWidth, DisRatio, 1.0, true, 0);
+
+			double dh1 = heightL - lowestHeight, dh2 = heightR - lowestHeight;
+
+			// hard carving
+			for (auto pD : pointsAlongDir) {
+				//std::cout << pD.first << " " << pD.second << std::endl;
+				if (pD.first < 0 || pD.first >= PIXELX || pD.second < 0 || pD.second >= PIXELX) continue;
+				
+				double distance = std::sqrt((pD.first - p.first) * (pD.first - p.first) + (pD.second - p.second) * (pD.second - p.second));
+
+				int isLeft = pD.first < p.first ? 1 : 0;
+
+				double dh = isLeft * dh1 + (1 - isLeft) * dh2;
+
+				double curHeight = dh * distance / (RiverWidth * t) + lowestHeight;
+
+				elevationMap[pD.second][pD.first] = std::min(elevationMap[pD.second][pD.first], curHeight);
+
+			}
+
+		}
+		
+	}
+
+	// smooth river
+
+	auto kernel = getKernel(SmoothRadius / 2);
+
+	auto tmpHardMap = elevationMap;
+	elevationMapSmoothed = elevationMap;
+
+	
+	for (auto branch : branches) {
+
+		vec2 dir = branch->getCarveDirection();
+
+		vector<pair<int, int>> pixels = branchIndices(branch, NEEDW, e, BranchWidth, DisRatio, 1.0, true);
+
+		double startW = log(branch->start->priority * 5.0), endW = log(branch->end->priority * 5.0);
+
+		for (auto p : pixels) {
+
+			vec2 origin(p.first, p.second);
+
+			double t = std::sqrt(std::pow(origin[0] - branch->start->position[0], 2.0) +
+				std::pow(origin[1] - branch->start->position[1], 2.0)) /
+				std::sqrt(std::pow(branch->end->position[0] - branch->start->position[0], 2.0) +
+					std::pow(branch->end->position[1] - branch->start->position[1], 2.0));
+
+			t = startW + (endW - startW) * t + 0.5;
+
+			vec2 l = -RiverWidth * t * dir + origin;
+			vec2 r = RiverWidth * t * dir + origin;
+
+			pair<int, int> left(l[0], l[1]), right(r[0], r[1]);
+
+			// make sure the left point is left to origin point w.r.t world space
+			if (left.first > right.first) {
+				std::swap(left, right);
+			}
+
+			left.first = clamp(left.first, 0, tmpMap.size() - 1);
+			left.second = clamp(left.second, 0, tmpMap.size() - 1);
+			right.first = clamp(right.first, 0, tmpMap.size() - 1);
+			right.second = clamp(right.second, 0, tmpMap.size() - 1);
+
+			auto pointsAlongDir = branchIndices(vec3(left.first, left.second, 0), vec3(right.first, right.second, 0), NEEDW, e, BranchWidth, DisRatio, 1.0, true, 0);
+
+			for (auto pD : pointsAlongDir) {
+				elevationMapSmoothed[pD.second][pD.first] = smoothRiver(pD.second, pD.first, tmpHardMap, kernel);
+			}
+		}
+
+	}
+	
+}
+
+double RiverNetwork::smoothRiver(int px, int py, vector<vector<double>>& map, vector<vector<double>>& kernel) {
+
+	double height = 0.0;
+
+	for (int i = 0; i < SmoothRadius; ++i) {
+		for (int j = 0; j < SmoothRadius; ++j) {
+			int x = px - SmoothRadius / 2 + i;
+			int y = py - SmoothRadius / 2 + j;
+			if (x < 0) x = - x;
+			if (y < 0) y = -y;
+			if (x >= PIXELX) x = PIXELX - 1 - (x - PIXELX);
+			if (y >= PIXELX) y = PIXELX - 1 - (y - PIXELX);
+			height += kernel[i][j] * map[x][y];
+		}
+	}
+
+
+	return height;
 }
 
 

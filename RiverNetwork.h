@@ -36,6 +36,18 @@ public:
 	vector<RiverNode*> nonTerminalNodes;
 	//the elevation map
 	vector<vector<double>> elevationMap;
+	vector<vector<double>> elevationMapSmoothed;
+
+	// Maya API
+	double ElevationConstraint;
+	double ElevationPercentile;
+	double DisRatio;
+	double ps;
+	double pa;
+	double RiverWidth;
+	double RiverHeight;
+	double BranchWidth;
+	int NEEDW;
 
 	//current maximum priority
 	int maxP;
@@ -43,7 +55,10 @@ public:
 	double minElevation;
 	double elevationRange;
 	//RiverNetwork();
-	RiverNetwork(int w = 0, int h = 0, double e = 0.0);
+	RiverNetwork(int w = 0, int h = 0, double e = 0.0, double eleC = 5.0, 
+		double eleP = 0.05, double disR = 0.75, double ps = 0.7, 
+		double pa = 0.2, double rWid = 1.0, double rH = 10.0, 
+		double bW = 5.0);
 	~RiverNetwork();
 
 	//in case we need to resize, we have to recreate the grid
@@ -83,4 +98,11 @@ public:
 
 	//after generating rivers, we write the elevation info into the bitmap
 	void writeRivers(const std::string filename);
+	void writeRiversFromElevation(const std::string filename);
+
+	// carve away river
+	void carveRiver();
+
+	// smooth river branch
+	double smoothRiver(int px, int py, vector<vector<double>>& map, vector<vector<double>>& kernel);
 };

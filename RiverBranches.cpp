@@ -52,8 +52,12 @@ void RiverNode::setElevation(double z)
 RiverBranch::RiverBranch(RiverNode * s, RiverNode * e)
 	:start(s), end(e)
 {
+	length = (s->position - e->position).Length();
+
 	index++;
 	id = index;
+
+	branchType = 1;
 }
 
 //auxiliary functions and structures for check of line segment intersections
@@ -204,6 +208,31 @@ double RiverNode::getElevation(double H, double W, std::vector<vector<double>> &
 	//return 100.0 * exp(-pow(position[0] - H / 2.0, 2.0) / 200000 - pow(position[1] - W / 2.0, 2.0) / 200000);
 }
 
+
+// calculate the direction for river branch carving
+vec2 RiverBranch::getCarveDirection() {
+
+	// compute branch slope
+	double dx = this->end->position[0] - this->start->position[0];
+	double dy = this->end->position[1] - this->start->position[1];
+
+	// if branch is vertical
+	if (std::abs(dx) < DBL_EPSILON) {
+		return vec2(1.0, 0.0);
+	}
+
+	// if branch is horizontal
+	else if (std::abs(dy) < DBL_EPSILON) {
+		return vec2(0.0, 1.0);
+	}
+
+	else {
+		vec2 dir = vec2(-dy, dx);
+		dir.Normalize();
+		return dir;
+	}
+}
+
 // main function
 int main()
 {
@@ -234,13 +263,15 @@ int main()
 	for (int i = 0; i < RN.nodes.size(); i++)
 	{
 
-		std::cout << RN.nodes[i]->position << " " << RN.nodes[i]->id << std::endl;
+		//std::cout << RN.nodes[i]->position << " " << RN.nodes[i]->id << std::endl;
 
 		outX << RN.nodes[i]->position[0] << endl;
 		outY << RN.nodes[i]->position[1] << endl;
 		outId << RN.nodes[i]->id << endl;
 		outPri << RN.nodes[i]->priority << endl;
 	}
+
+	cout << RN.branches.size() << endl;
 
 	//write the river results into a new bitmap file
 	RN.writeRivers("./TestImage/HeightMap.bmp");
@@ -257,6 +288,9 @@ int main()
 		outBranchX << RN.branches[i]->start->position[0] << " " << RN.branches[i]->end->position[0] << endl;
 		outBranchY << RN.branches[i]->start->position[1] << " " << RN.branches[i]->end->position[1] << endl;
 	}
+
+	RN.carveRiver();
+	RN.writeRiversFromElevation("./TestImage/HeightMap.bmp");
 
 	//test branch distance
 	//RiverBranch* cur = RN.branches[min((unsigned int)10, (unsigned int)(RN.branches.size() - 1))];

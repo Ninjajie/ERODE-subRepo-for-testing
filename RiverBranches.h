@@ -37,6 +37,7 @@ public:
 	//RiverNode* getParent();
 	//void addChild(RiverNode* c);
 	//RiverNode* getChild(int i);
+
 };
 
 
@@ -51,6 +52,13 @@ public:
 	static int index;
 	int id;
 
+	double length;
+
+	int branchType;
+
 	RiverBranch(RiverNode* s, RiverNode* e);
 	double distance(RiverBranch* branch);
+
+	// calculate the direction of river branch carving
+	vec2 getCarveDirection();
 };
